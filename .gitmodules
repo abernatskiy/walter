@@ -1,0 +1,3 @@
+[submodule "pyrosim"]
+	path = pyrosim
+	url = git://github.com/abernatskiy/pyrosim-1.git
