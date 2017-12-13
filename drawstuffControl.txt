@@ -1,0 +1,13 @@
+Simulation test environment v0.02
+   Ctrl-P : pause / unpause (or say `-pause' on command line).
+   Ctrl-O : single step when paused.
+   Ctrl-T : toggle textures (or say `-notex' on command line).
+   Ctrl-S : toggle shadows (or say `-noshadow' on command line).
+   Ctrl-V : print current viewpoint coordinates (x,y,z,h,p,r).
+   Ctrl-W : write frames to ppm files: frame/frameNNN.ppm
+   Ctrl-X : exit.
+
+Change the camera position by clicking + dragging in the window.
+   Left button - pan and tilt.
+   Right button - forward and sideways.
+   Left + Right button (or middle button) - sideways and up.

@@ -8,4 +8,5 @@ Variable mass tether coils	not reqd	required	no			no
 Meshes						not reqd	required	no			no
 
 
+Maybe - finite strength intermittent contact
 Wishful thinking - non-massless tethers
