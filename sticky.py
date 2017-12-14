@@ -75,7 +75,7 @@ def send_to_simulator(sim, weight_matrix):
 
     adhesion_actuator = sim.send_adhesion_neuron(body_id=shins[0])
     bneuron = sim.send_bias_neuron()
-    seim.send_synapse(bneuron, adhesion_actuatior, 1.0)
+    sim.send_synapse(bneuron, adhesion_actuatior, 1.0)
 
     ENVCUBESIZE = 0.15
     env_cube = sim.send_box(x=2.5*HEIGHT, y=0, z=ENVCUBESIZE/2.,
