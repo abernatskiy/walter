@@ -70,8 +70,14 @@ def send_to_simulator(sim, weight_matrix):
         foot_sensors[i] = sim.send_touch_sensor(shins[i])
         sensor_neurons[i] = sim.send_sensor_neuron(foot_sensors[i])
 
-        fneuron = sim.send_function_neuron(lambda x: 0.05*math.sin(x))
+        fneuron = sim.send_function_neuron(lambda x: 0.02*math.sin(x))
         sim.send_synapse(fneuron, motor_neurons[4], 1.0)
+
+    ENVCUBESIZE = 0.15
+
+    env_cube = sim.send_box(x=2.5*HEIGHT, y=0, z=ENVCUBESIZE/2.,
+                            length=ENVCUBESIZE, width=ENVCUBESIZE,
+                            height=ENVCUBESIZE, mass=1)
 
     sim.create_collision_matrix('all')
     sim.send_camera((0,-HEIGHT*10,HEIGHT), (90,0,0))
