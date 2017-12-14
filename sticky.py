@@ -73,7 +73,8 @@ def send_to_simulator(sim, weight_matrix):
         fneuron = sim.send_function_neuron(lambda x: 0.02*math.sin(x))
         sim.send_synapse(fneuron, motor_neurons[4], 1.0)
 
-    adhesion_actuator = sim.send_adhesion_neuron(body_id=shins[0])
+    adhesive_joint = sim.send_adhesive_joint(body_id=shins[0])
+    adhesive_neuron = sim.send_motor_neuron(adhesive_joint)
     bneuron = sim.send_bias_neuron()
     sim.send_synapse(bneuron, adhesion_actuatior, 1.0)
 
