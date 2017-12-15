@@ -8,6 +8,7 @@ Variable mass thrusters		not reqd	required	no			no
 Variable mass tether coils	not reqd	required	no			no
 Meshes						not reqd	required	no			no
 
+Finite strenght adhesion	not reqd	desirable	yes			no
 
 Maybe - finite strength intermittent contact
 Wishful thinking - non-massless tethers
