@@ -65,7 +65,7 @@ def send_to_simulator(sim, weight_matrix):
         sensor_neurons[i] = sim.send_sensor_neuron(foot_sensors[i])
 
         fneuron = sim.send_function_neuron(math.sin)
-        sim.send_synapse(fneuron, motor_neurons[6], 1.0) # BUG: try changing the index of motor neuron from 6 to 4 and back and observe the results
+        sim.send_synapse(fneuron, motor_neurons[4], 1.0) # BUG: try changing the index of motor neuron from 6 to 4 and back and observe the results
 
     sim.create_collision_matrix('all')
     sim.send_camera((0,-HEIGHT*10,HEIGHT), (90,0,0))

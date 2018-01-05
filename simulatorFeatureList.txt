@@ -11,4 +11,4 @@ Meshes						not reqd	required	no			no
 Finite strenght adhesion	not reqd	desirable	yes			no
 
 Maybe - finite strength intermittent contact
-Wishful thinking - non-massless tethers
+Wishful thinking - non-massless tethers, realistic magnetic grippers

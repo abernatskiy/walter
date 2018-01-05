@@ -73,15 +73,24 @@ def send_to_simulator(sim, weight_matrix):
         fneuron = sim.send_function_neuron(lambda x: 0.02*math.sin(x))
         sim.send_synapse(fneuron, motor_neurons[4], 1.0)
 
-    adhesive_joint = sim.send_adhesive_joint(body_id=shins[0])
-    adhesive_neuron = sim.send_motor_neuron(adhesive_joint)
+    adhesive_joint1 = sim.send_adhesive_joint(body_id=shins[0], adhesion_kind=0)
+    adhesive_joint2 = sim.send_adhesive_joint(body_id=shins[0])
+    adhesive_neuron1 = sim.send_motor_neuron(adhesive_joint1)
+    adhesive_neuron2 = sim.send_motor_neuron(adhesive_joint2)
+    fneuron = sim.send_function_neuron(lambda x: math.sin(0.1*x))
     bneuron = sim.send_bias_neuron()
-    sim.send_synapse(bneuron, adhesive_neuron, 1.0)
+    sim.send_synapse(fneuron, adhesive_neuron1, 1.0)
+#    sim.send_synapse(bneuron, adhesive_neuron2, 1.0)
 
     ENVCUBESIZE = 0.15
-    env_cube = sim.send_box(x=2.5*HEIGHT, y=0, z=ENVCUBESIZE/2.,
+    env_cube1 = sim.send_box(x=2.5*HEIGHT, y=-ENVCUBESIZE/2., z=ENVCUBESIZE/2.,
                             length=ENVCUBESIZE, width=ENVCUBESIZE,
                             height=ENVCUBESIZE, mass=1)
+    env_cube2 = sim.send_box(x=2.5*HEIGHT, y=ENVCUBESIZE/2., z=ENVCUBESIZE/2.,
+                            length=ENVCUBESIZE, width=ENVCUBESIZE,
+                            height=ENVCUBESIZE, mass=1)
+
+    sim.send_adhesion_susceptibility(env_cube1, 1)
 
     sim.create_collision_matrix('all')
     sim.send_camera((0,-HEIGHT*10,HEIGHT), (90,0,0))
