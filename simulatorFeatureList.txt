@@ -2,7 +2,7 @@ Feature						PoC			ViableVer	Upstream?	Implemented?
 ============================================================================
 
 Intermittent contact		required	required	yes			yes
-Disable base plate			required	required	yes			no
+Disable base plate			required	required	yes			yes
 Massless tethers			required	required	no			no
 Variable mass thrusters		not reqd	required	no			no
 Variable mass tether coils	not reqd	required	no			no
