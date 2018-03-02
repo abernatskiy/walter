@@ -1,3 +1,9 @@
 [submodule "pyrosim"]
 	path = pyrosim
 	url = git://github.com/abernatskiy/pyrosim-1.git
+[submodule "evs"]
+	path = evs
+	url = https://github.com/abernatskiy/evs.git
+[submodule "pbsGridWalker"]
+	path = pbsGridWalker
+	url = https://github.com/abernatskiy/pbsGridWalker.git
