@@ -1,14 +1,14 @@
-Feature						PoC			ViableVer	Upstream?	Implemented?
+Feature						         PoC			ViableVer	Upstream?	Implemented?
 ============================================================================
 
-Intermittent contact		required	required	yes			yes
-Disable base plate			required	required	yes			yes
-Massless tethers			required	required	no			no
-Variable mass thrusters		not reqd	required	no			no
-Variable mass tether coils	not reqd	required	no			no
-Meshes						not reqd	required	no			no
+Intermittent contact       required required	yes     yes
+Disable base plate         required required	yes     yes
+Massless tethers           required required	yes     yes
+Proximity sensor           required required  yes     yes
+Attitude control           required required  yes     yes
+Variable mass thrusters    not reqd required	no      no
+Variable mass tether coils not reqd required	no      no
+Meshes                     not reqd required	no      no
+Finite strenght adhesion   not reqd desirable yes     no
 
-Finite strenght adhesion	not reqd	desirable	yes			no
-
-Maybe - finite strength intermittent contact
 Wishful thinking - non-massless tethers, realistic magnetic grippers
