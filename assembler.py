@@ -7,6 +7,7 @@ class Assembler(object):
 	proximity_range = 2.0
 	proximity_offset = (0.,0.,0.)
 	max_thrust = 1.0
+	thrust_threshold = -0.8
 	max_torque = 0.1
 
 	proximity_channels = [0,1,2] # colors (3,4,5) are not used for now
@@ -15,8 +16,6 @@ class Assembler(object):
 		'''Creates an assembler robot at the geometrical position initpos'''
 		x,y,z = initpos
 		bcr,bcg,bcb = Assembler.body_color
-
-		print(x,y,z)
 
 		self.sim = sim
 		self.body = sim.send_sphere(x=x, y=y, z=z,
@@ -32,7 +31,7 @@ class Assembler(object):
 
 		self.thruster = sim.send_thruster(self.body,
 		                                  x=x, y=y, z=z-Assembler.body_radius,
-		                                  lo=0., hi=Assembler.max_thrust)
+		                                  lo=0., hi=Assembler.max_thrust, threshold=Assembler.thrust_threshold)
 		self.rcw = sim.send_reaction_control_wheel(self.body,
 		                                           max_torque=Assembler.max_torque)
 		self.numMotors = 4 # thruster + three DoF of the reaction control wheel
@@ -63,6 +62,7 @@ class Assembler(object):
 
 		self.hiddenNeurons = []
 
+		self.hiddenNeurons.append(self.sim.send_bias_neuron())
 		for i in range(self.numHiddenNeurons):
 			self.hiddenNeurons.append(self.sim.send_hidden_neuron(tau=hnTaus[i],
 		  	                                                    alpha=hnAlphas[i]))
