@@ -31,7 +31,7 @@ class Assembler(object):
 
 		self.thruster = sim.send_thruster(self.body,
 		                                  x=x, y=y, z=z-Assembler.body_radius,
-		                                  lo=0., hi=Assembler.max_thrust, threshold=Assembler.thrust_threshold)
+		                                  lo=0., hi=-1.*Assembler.max_thrust, threshold=Assembler.thrust_threshold)
 		self.rcw = sim.send_reaction_control_wheel(self.body,
 		                                           max_torque=Assembler.max_torque)
 		self.numMotors = 4 # thruster + three DoF of the reaction control wheel

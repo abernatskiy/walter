@@ -11,4 +11,6 @@ Variable mass tether coils not reqd required	no      no
 Meshes                     not reqd required	no      no
 Finite strenght adhesion   not reqd desirable yes     no
 
+Default tension for massless tethers
+
 Wishful thinking - non-massless tethers, realistic magnetic grippers
