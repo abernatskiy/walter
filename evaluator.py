@@ -50,9 +50,9 @@ if __name__ == "__main__":
 	outPipe = cliArgs.evalsFileName
 
 	# Reading the genomes and evaluating them
-#	while True:
-	genomes = readGenomes(inPipe)
-	evals = {}
-	for gid, genome in genomes.iteritems():
-		evals[gid] = evaluateController([0,0,3], genome)
-		writeEvals(outPipe, evals)
+	while True:
+		genomes = readGenomes(inPipe)
+		evals = {}
+		for gid, genome in genomes.iteritems():
+			evals[gid] = evaluateController([0,0,3], genome)
+			writeEvals(outPipe, evals)

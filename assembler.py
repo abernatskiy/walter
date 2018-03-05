@@ -39,7 +39,9 @@ class Assembler(object):
 		self.gtop = GenotypeToPhenotypeMap(self.numSensors, self.numMotors)
 
 	def setController(self, controllerStr):
-		self.numHiddenNeurons, annParams = self.gtop.getPhenotype(controllerStr)
+		annParams = self.gtop.getPhenotype(controllerStr)
+
+		self.numHiddenNeurons = annParams['numHiddenNeurons']
 
 		self._addSensorNeurons()
 		self._addHiddenNeurons(annParams['hiddenNeuronsParams'])
