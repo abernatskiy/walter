@@ -95,7 +95,10 @@ class Assembler(object):
 		self.synapses['hiddenToHidden'] = [ self.sim.send_synapse(self.hiddenNeurons[i],self.hiddenNeurons[j],w) for i,j,w in synParams['hiddenToHidden'] ]
 		self.synapses['hiddenToMotor'] = [ self.sim.send_synapse(self.hiddenNeurons[i],self.motorNeurons[j],w) for i,j,w in synParams['hiddenToMotor'] ]
 
-
-
-
-
+	def getSensorData(self):
+		sensorData = {}
+		sensorData['light'] = self.sim.get_sensor_data(self.lightSensor)
+		sensorData['proximity'] = []
+		for ch in Assembler.proximity_channels:
+			sensorData['proximity'].append(self.sim.get_sensor_data(self.proximitySensor, svi=ch))
+		return sensorData

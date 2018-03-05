@@ -23,7 +23,10 @@ def evaluateController(initialConditions, controllerStr):
 	sim.create_collision_matrix('all')
 	sim.start()
 	sim.wait_to_finish()
-	return 0.
+
+	assemblerSensorData = ass0.getSensorData()
+
+	return sum(assemblerSensorData['light']) - sum(assemblerSensorData['proximity'][0])
 
 def readGenomes(inFile):
 	genomes = {}
@@ -55,4 +58,4 @@ if __name__ == "__main__":
 		evals = {}
 		for gid, genome in genomes.iteritems():
 			evals[gid] = evaluateController([0,0,3], genome)
-			writeEvals(outPipe, evals)
+		writeEvals(outPipe, evals)
