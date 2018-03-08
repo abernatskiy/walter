@@ -7,7 +7,7 @@ import part
 seconds = 15.0
 dt = 0.05
 camera_pos = [9,-12,12]
-play_blind = False
+play_blind = True
 debug = False
 
 def evaluateController(initialConditions, controllerStr):
@@ -33,13 +33,14 @@ def readGenomes(inFile):
 	with open(inFile, 'r') as input:
 		for line in input:
 			id, genome = line.split(' ', 1)
+			id = int(id)
 			genomes[id] = genome[:-1]
 	return genomes
 
 def writeEvals(outFile, evals):
 	with open(outFile, 'w') as output:
-		for gid, geval in evals.iteritems():
-			output.write(str(gid) + ' ' + str(geval) + '\n')
+		for gid in sorted(evals.keys()):
+			output.write(str(gid) + ' ' + str(evals[gid]) + '\n')
 
 if __name__ == "__main__":
 	# Parsing CLI
@@ -56,6 +57,6 @@ if __name__ == "__main__":
 	while True:
 		genomes = readGenomes(inPipe)
 		evals = {}
-		for gid, genome in genomes.iteritems():
-			evals[gid] = evaluateController([0,0,3], genome)
+		for gid in sorted(genomes.keys()):
+			evals[gid] = evaluateController([0,0,3], genomes[gid])
 		writeEvals(outPipe, evals)

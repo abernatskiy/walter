@@ -44,8 +44,8 @@ class Assembler(object):
 		self.numHiddenNeurons = annParams['numHiddenNeurons']
 
 		self._addSensorNeurons()
-		self._addHiddenNeurons(annParams['hiddenNeuronsParams'])
-		self._addMotorNeurons(annParams['motorNeuronsParams'])
+		self._addHiddenNeurons(annParams['hiddenNeuronParams'])
+		self._addMotorNeurons(annParams['motorNeuronParams'])
 		self._addSynapses(annParams['synapsesParams'])
 
 	def _addSensorNeurons(self):
