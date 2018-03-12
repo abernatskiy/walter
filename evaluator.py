@@ -8,12 +8,17 @@ seconds = 15.0
 dt = 0.05
 camera_pos = [9,-12,12]
 play_blind = True
+play_paused = False
 debug = False
 
+initial_conditions = [0,0,3]
+
 def evaluateController(initialConditions, controllerStr):
+	global debug, play_blind, play_paused, camera_pos, dt, seconds
 	eval_time = int(seconds/dt)
+	print('Play blind is ', play_blind)
 	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0.,
-	                        debug=debug, play_blind=play_blind, play_paused=False, capture=False, use_textures=True,
+	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=False, use_textures=True,
 	                        xyz=camera_pos)
 	ass0 = assembler.Assembler(sim, initialConditions)
 	ass0.setController(controllerStr)
@@ -58,5 +63,5 @@ if __name__ == "__main__":
 		genomes = readGenomes(inPipe)
 		evals = {}
 		for gid in sorted(genomes.keys()):
-			evals[gid] = evaluateController([0,0,3], genomes[gid])
+			evals[gid] = evaluateController(initial_conditions, genomes[gid])
 		writeEvals(outPipe, evals)
