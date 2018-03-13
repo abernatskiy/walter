@@ -2,7 +2,7 @@
 
 import pyrosim
 import assembler
-import part
+import parts
 
 seconds = 15.0
 dt = 0.05
@@ -23,7 +23,7 @@ def evaluateController(initialConditions, controllerStr):
 	ass0 = assembler.Assembler(sim, initialConditions)
 	ass0.setController(controllerStr)
 
-	part0 = part.Part(sim, (10.,0., 3.), (1.,0.,0.))
+	part0 = parts.Cylinder(sim, (10.,0., 3.), (1.,0.,0.))
 
 	sim.create_collision_matrix('all')
 	sim.start()
