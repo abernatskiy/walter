@@ -58,7 +58,7 @@ class Assembler(object):
 
 	def _addHiddenNeurons(self, hnParams):
 		'''Adds hidden neurons'''
-		# hnInitialStates = hnParams['initialState'] # ignored for now, no support in pyrosim
+		hnInitialStates = hnParams['initialState']
 		hnTaus = hnParams['tau']
 		hnAlphas = hnParams['alpha']
 
@@ -67,8 +67,8 @@ class Assembler(object):
 		self.hiddenNeurons.append(self.sim.send_bias_neuron())
 		for i in range(self.numHiddenNeurons):
 			self.hiddenNeurons.append(self.sim.send_hidden_neuron(tau=hnTaus[i],
-		  	                                                    alpha=hnAlphas[i]))
-			#                                                  start_value=hnInitialStates[i+1]
+				                                                    alpha=hnAlphas[i],
+			                                                      start_value=hnInitialStates[i]))
 
 	def _addMotorNeurons(self, mnParams):
 		'''Adds motor neurons to all motors'''
