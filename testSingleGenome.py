@@ -7,7 +7,9 @@ evaluator.debug = True
 
 testGenomes = []
 testGenomes.append('{"numHiddenNeurons": 2,'
-                   '"motorNeuronParams": {"tau": [1.0, 1.0, 1.0, 1.0], "alpha": [0.0, 0.0, 0.0, 0.0], "initialState": [-1.0, -1.0, -1.0, -1.0]},'
+                   '"motorNeuronParams": {"tau": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],'
+                                       '"alpha": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],'
+                                '"initialState": [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]},'
                    '"hiddenNeuronParams": {"tau": [1.0, 1.0], "alpha": [0.0, 0.0], "initialState": [0.0, 0.0]},'
                    '"synapsesParams": '
                    '{"sensorToHidden": [[0, 1, 1.0], [0, 2, 1.0], [1, 1, 1.0], [1, 2, 1.0], [2, 1, 1.0], [2, 2, 1.0], [3, 1, 1.0], [3, 2, 1.0]],'

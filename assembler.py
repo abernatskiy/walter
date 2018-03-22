@@ -9,8 +9,15 @@ class Assembler(object):
 	max_thrust = 1.0
 	thrust_threshold = -0.8
 	max_torque = 0.1
-
+	tether_force_coefficient = 1.
+	tether_dampening_coefficient = 10.
 	proximity_channels = [0,1,2] # colors (3,4,5) are not used for now
+	adhesion_kind = 10
+
+	motor_labels = ['thruster', 'rcwX', 'rcwY', 'rcwZ', 'adhesive', 'tether']
+	num_motors = 6
+	sensor_labels = ['proximityR', 'proximityT', 'proximityP', 'light', 'adhesive', 'tetherTension']
+	num_sensors = 6
 
 	def __init__(self, sim, initpos):
 		'''Creates an assembler robot at the geometrical position initpos'''
@@ -18,25 +25,61 @@ class Assembler(object):
 		bcr,bcg,bcb = Assembler.body_color
 
 		self.sim = sim
+
+		# Robot's body
 		self.body = sim.send_sphere(x=x, y=y, z=z,
 		                            radius=Assembler.body_radius,
 		                            mass=Assembler.body_mass,
 		                            r=bcr, g=bcg, b=bcb)
 
-		self.proximitySensor = sim.send_proximity_sensor(body_id=self.body,
-		                                                  x=0, y=0, z=0,
-		                                                  max_distance=Assembler.proximity_range) # FIXME: add a realistic offset eventually
-		self.lightSensor = sim.send_light_sensor(self.body) # FIXME: add a realistic offset eventually
-		self.numSensors = 4 # three channels of proximity, one channel of light
+		# Motors
+		self.motors = []
 
-		self.thruster = sim.send_thruster(self.body,
-		                                  x=x, y=y, z=z-Assembler.body_radius,
-		                                  lo=0., hi=-1.*Assembler.max_thrust, threshold=Assembler.thrust_threshold)
-		self.rcw = sim.send_reaction_control_wheel(self.body,
-		                                           max_torque=Assembler.max_torque)
-		self.numMotors = 4 # thruster + three DoF of the reaction control wheel
+		thruster = sim.send_thruster(self.body,
+		                             x=x, y=y, z=z-Assembler.body_radius,
+		                             lo=0., hi=-1.*Assembler.max_thrust, threshold=Assembler.thrust_threshold)
+		self.motors.append((thruster, 0))
 
-		self.gtop = GenotypeToPhenotypeMap(self.numSensors, self.numMotors)
+		rcw = sim.send_reaction_control_wheel(self.body,
+		                                      max_torque=Assembler.max_torque)
+		for input_index in [0,1,2]:
+			self.motors.append((rcw, input_index))
+
+		sticky = sim.send_adhesive_joint(self.body, adhesion_kind=Assembler.adhesion_kind)
+		self.motors.append((sticky, 0))
+
+		self.motors.append(None) # tether
+
+		# Sensors
+		self.sensors = []
+
+		proximitySensor = sim.send_proximity_sensor(body_id=self.body,
+		                                            x=0, y=0, z=0,
+		                                            max_distance=Assembler.proximity_range) # FIXME: add a realistic offset eventually
+		for svi in Assembler.proximity_channels:
+			self.sensors.append((proximitySensor, svi))
+
+		lightSensor = sim.send_light_sensor(self.body) # FIXME: add a realistic offset eventually
+		self.sensors.append((lightSensor, 0))
+
+		stickinessSensor = sim.send_proprioceptive_sensor(joint_id=sticky)
+		self.sensors.append((stickinessSensor, 0))
+
+		self.sensors.append(None) # tether tension sensor
+
+		# Genotype to phenotype map
+		self.gtop = GenotypeToPhenotypeMap(Assembler.num_sensors, Assembler.num_motors)
+
+	def connectTetherToOther(self, other):
+		assert self.sim.id == other.sim.id, 'Robots must be in the same simulator to connect them with tethers'
+		tether = sim.send_tether(self.body, other.body, force_coefficient=Assembler.tether_force_coefficient, dampening_coefficient=Assembler.tether_dampening_coefficient)
+		tether_proprioception = sim.send_proprioceptive_sensor(joint_id=tether)
+		self._addTether(tether, tether_proprioception, 0)
+		other._addTether(tether, tether_proprioception, 1)
+
+	def _addTether(self, tether_id, proprioceptive_sensor_id, index):
+		self.motors[5] = (tether_id, index)
+		self.sensors[5] = (proprioceptive_sensor_id, index)
 
 	def setController(self, controllerStr):
 		annParams = self.gtop.getPhenotype(controllerStr)
@@ -51,10 +94,10 @@ class Assembler(object):
 	def _addSensorNeurons(self):
 		'''Adds sensor neurons to all sensors'''
 		self.sensorNeurons = []
-
-		self.sensorNeurons.append(self.sim.send_sensor_neuron(sensor_id=self.lightSensor))
-		for pc in Assembler.proximity_channels:
-			self.sensorNeurons.append(self.sim.send_sensor_neuron(sensor_id=self.proximitySensor, svi=pc))
+		for i in range(Assembler.num_sensors):
+			if self.sensors[i]:
+				sen, svi = self.sensors[i]
+				self.sensorNeurons.append(self.sim.send_sensor_neuron(sensor_id=sen, svi=svi))
 
 	def _addHiddenNeurons(self, hnParams):
 		'''Adds hidden neurons'''
@@ -77,17 +120,14 @@ class Assembler(object):
 		mnAlphas = mnParams['alpha']
 
 		self.motorNeurons = []
-
-		self.motorNeurons.append(self.sim.send_motor_neuron(joint_id=self.thruster,
-		                                                    start_value=mnInitialStates[0],
-		                                                    tau=mnTaus[0],
-		                                                    alpha=mnAlphas[0]))
-		for i in range(3):
-			self.motorNeurons.append(self.sim.send_motor_neuron(joint_id=self.rcw,
-			                                                    start_value=mnInitialStates[i+1],
-			                                                    tau=mnTaus[i+1],
-		  	                                                  alpha=mnAlphas[i+1],
-			                                                    input_index=i))
+		for i in range(Assembler.num_motors):
+			if self.motors[i]:
+				mot, mii = self.motors[i]
+				self.motorNeurons.append(self.sim.send_motor_neuron(joint_id=mot,
+		                                                        start_value=mnInitialStates[i],
+		                                                        tau=mnTaus[i],
+		                                                        alpha=mnAlphas[i],
+				                                                    input_index=mii))
 
 	def _addSynapses(self, synParams):
 		self.synapses = {}
@@ -96,9 +136,9 @@ class Assembler(object):
 		self.synapses['hiddenToMotor'] = [ self.sim.send_synapse(self.hiddenNeurons[i],self.motorNeurons[j],w) for i,j,w in synParams['hiddenToMotor'] ]
 
 	def getSensorData(self):
-		sensorData = {}
-		sensorData['light'] = self.sim.get_sensor_data(self.lightSensor)
-		sensorData['proximity'] = []
-		for ch in Assembler.proximity_channels:
-			sensorData['proximity'].append(self.sim.get_sensor_data(self.proximitySensor, svi=ch))
+		sensorData = []
+		for i in range(Assembler.num_sensors):
+			if self.sensors[i]:
+				sen, svi = self.sensors[i]
+				sensorData.append(self.sim.get_sensor_data(sen, svi=svi))
 		return sensorData

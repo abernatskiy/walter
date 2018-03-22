@@ -14,3 +14,5 @@ Finite strenght adhesion   not reqd desirable yes     no
 Default tension for massless tethers
 
 Wishful thinking - non-massless tethers, realistic magnetic grippers
+
+After the introduction of tethers and adhesors - find example genomes that test these

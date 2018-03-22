@@ -31,7 +31,7 @@ def evaluateController(initialConditions, controllerStr):
 
 	assemblerSensorData = ass0.getSensorData()
 
-	return sum(assemblerSensorData['light']) - sum(assemblerSensorData['proximity'][0])
+	return sum(assemblerSensorData[3]) - sum(assemblerSensorData[0]) # integral of light minus integral of proximity
 
 def readGenomes(inFile):
 	genomes = {}
