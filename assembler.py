@@ -1,4 +1,4 @@
-from genotypeToPhenotype import GenotypeToPhenotypeMap
+import genotypeToPhenotype as g2p
 
 class Assembler(object):
 	body_radius = 0.5
@@ -14,10 +14,11 @@ class Assembler(object):
 	proximity_channels = [0,1,2] # colors (3,4,5) are not used for now
 	adhesion_kind = 10
 
-	motor_labels = ['thruster', 'rcwX', 'rcwY', 'rcwZ', 'adhesive', 'tether']
-	num_motors = 6
-	sensor_labels = ['proximityR', 'proximityT', 'proximityP', 'light', 'adhesive', 'tetherTension']
-	num_sensors = 6
+	default_motor_labels = ['thruster', 'rcwX', 'rcwY', 'rcwZ', 'adhesive']
+	default_num_motors = 5
+	default_sensor_labels = ['proximityR', 'proximityT', 'proximityP', 'light', 'adhesive']
+	default_num_sensors = 5
+	# FIXME: make maps from a string labels of to sensor/motor returning functions and facilities for calling these functions with any additional parameters needed
 
 	def __init__(self, sim, initpos):
 		'''Creates an assembler robot at the geometrical position initpos'''
@@ -48,7 +49,8 @@ class Assembler(object):
 		sticky = sim.send_adhesive_joint(self.body, adhesion_kind=Assembler.adhesion_kind)
 		self.motors.append((sticky, 0))
 
-		self.motors.append(None) # tether
+		self.numMotors = Assembler.default_num_motors
+		self.motorLabels = Assembler.default_motor_labels
 
 		# Sensors
 		self.sensors = []
@@ -65,10 +67,13 @@ class Assembler(object):
 		stickinessSensor = sim.send_proprioceptive_sensor(joint_id=sticky)
 		self.sensors.append((stickinessSensor, 0))
 
-		self.sensors.append(None) # tether tension sensor
+		self.numSensors = Assembler.default_num_sensors
+		self.sensorLabels = Assembler.default_sensor_labels
 
-		# Genotype to phenotype map
-		self.gtop = GenotypeToPhenotypeMap(Assembler.num_sensors, Assembler.num_motors)
+		self._addGToPMap()
+
+	def _addGToPMap(self):
+		self.gtop = g2p.GenotypeToPhenotypeMap(self.numSensors, self.numMotors)
 
 	def connectTetherToOther(self, other):
 		assert self.sim.id == other.sim.id, 'Robots must be in the same simulator to connect them with tethers'
@@ -78,8 +83,14 @@ class Assembler(object):
 		other._addTether(tether, tether_proprioception, 1)
 
 	def _addTether(self, tether_id, proprioceptive_sensor_id, index):
-		self.motors[5] = (tether_id, index)
-		self.sensors[5] = (proprioceptive_sensor_id, index)
+		self.motors.append = (tether_id, index)
+		self.motorLabels.append('tether')
+		self.numMotors += 1
+		self.sensors.append = (proprioceptive_sensor_id, index)
+		self.sensorLabels.append('tetherTension')
+		self.numSensors += 1
+
+		self._addGToPMap()
 
 	def setController(self, controllerStr):
 		annParams = self.gtop.getPhenotype(controllerStr)
@@ -94,10 +105,8 @@ class Assembler(object):
 	def _addSensorNeurons(self):
 		'''Adds sensor neurons to all sensors'''
 		self.sensorNeurons = []
-		for i in range(Assembler.num_sensors):
-			if self.sensors[i]:
-				sen, svi = self.sensors[i]
-				self.sensorNeurons.append(self.sim.send_sensor_neuron(sensor_id=sen, svi=svi))
+		for sen, svi in self.sensors:
+			self.sensorNeurons.append(self.sim.send_sensor_neuron(sensor_id=sen, svi=svi))
 
 	def _addHiddenNeurons(self, hnParams):
 		'''Adds hidden neurons'''
@@ -120,14 +129,13 @@ class Assembler(object):
 		mnAlphas = mnParams['alpha']
 
 		self.motorNeurons = []
-		for i in range(Assembler.num_motors):
-			if self.motors[i]:
-				mot, mii = self.motors[i]
-				self.motorNeurons.append(self.sim.send_motor_neuron(joint_id=mot,
-		                                                        start_value=mnInitialStates[i],
-		                                                        tau=mnTaus[i],
-		                                                        alpha=mnAlphas[i],
-				                                                    input_index=mii))
+		for i in range(self.numMotors):
+			mot, mii = self.motors[i]
+			self.motorNeurons.append(self.sim.send_motor_neuron(joint_id=mot,
+	                                                        start_value=mnInitialStates[i],
+	                                                        tau=mnTaus[i],
+	                                                        alpha=mnAlphas[i],
+			                                                    input_index=mii))
 
 	def _addSynapses(self, synParams):
 		self.synapses = {}
@@ -137,8 +145,6 @@ class Assembler(object):
 
 	def getSensorData(self):
 		sensorData = []
-		for i in range(Assembler.num_sensors):
-			if self.sensors[i]:
-				sen, svi = self.sensors[i]
-				sensorData.append(self.sim.get_sensor_data(sen, svi=svi))
+		for sen, svi in self.sensors:
+			sensorData.append(self.sim.get_sensor_data(sen, svi=svi))
 		return sensorData
