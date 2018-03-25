@@ -104,30 +104,35 @@ class Assembler(object):
 	def _addController(self, annParams):
 		self.numHiddenNeurons = annParams['numHiddenNeurons']
 
-		self._addSensorNeurons()
-		self._addHiddenNeurons(annParams['hiddenNeuronParams'])
-		self._addMotorNeurons(annParams['motorNeuronParams'])
+		self.sensorNeurons = self._addSensorNeurons()
+		self.hiddenNeurons = self._addHiddenNeurons(annParams['hiddenNeuronsParams'])
+		if not self.numHiddenNeurons == len(self.hiddenNeurons)-1:
+			raise ValueError('Declared number of hidden neurons ({}) is different from the number of hidden neurons supplied ({})'.format(self.numHiddenNeurons, len(self.hiddenNeurons)-1))
+		self.motorNeurons = self._addMotorNeurons(annParams['motorNeuronsParams'])
 		self._addSynapses(annParams['synapsesParams'])
 
 	def _addSensorNeurons(self):
 		'''Adds sensor neurons to all sensors'''
-		self.sensorNeurons = []
+		sensorNeurons = []
 		for sen, svi in self.sensors:
-			self.sensorNeurons.append(self.sim.send_sensor_neuron(sensor_id=sen, svi=svi))
+			sensorNeurons.append(self.sim.send_sensor_neuron(sensor_id=sen, svi=svi))
+		return sensorNeurons
 
-	def _addHiddenNeurons(self, hnParams):
+	def _addHiddenNeurons(self, hnParams, addBias=True):
 		'''Adds hidden neurons'''
 		hnInitialStates = hnParams['initialState']
 		hnTaus = hnParams['tau']
 		hnAlphas = hnParams['alpha']
 
-		self.hiddenNeurons = []
+		hiddenNeurons = []
 
-		self.hiddenNeurons.append(self.sim.send_bias_neuron())
-		for i in range(self.numHiddenNeurons):
-			self.hiddenNeurons.append(self.sim.send_hidden_neuron(tau=hnTaus[i],
+		if addBias:
+			hiddenNeurons.append(self.sim.send_bias_neuron())
+		for i in range(len(hnTaus)):
+			hiddenNeurons.append(self.sim.send_hidden_neuron(tau=hnTaus[i],
 				                                                    alpha=hnAlphas[i],
 			                                                      start_value=hnInitialStates[i]))
+		return hiddenNeurons
 
 	def _addMotorNeurons(self, mnParams):
 		'''Adds motor neurons to all motors'''
@@ -135,23 +140,24 @@ class Assembler(object):
 		mnTaus = mnParams['tau']
 		mnAlphas = mnParams['alpha']
 
-		self.motorNeurons = []
+		motorNeurons = []
 		for i in range(self.numMotors):
 			mot, mii = self.motors[i]
-			self.motorNeurons.append(self.sim.send_motor_neuron(joint_id=mot,
+			motorNeurons.append(self.sim.send_motor_neuron(joint_id=mot,
 	                                                        start_value=mnInitialStates[i],
 	                                                        tau=mnTaus[i],
 	                                                        alpha=mnAlphas[i],
 			                                                    input_index=mii))
+		return motorNeurons
 
 	def _addSynapses(self, synParams):
 		self.synapses = {}
-		self._wireALayer(synParams, 'sensorToHidden', self.sensorNeurons, self.hiddenNeurons)
-		self._wireALayer(synParams, 'hiddenToHidden', self.hiddenNeurons, self.hiddenNeurons)
-		self._wireALayer(synParams, 'hiddenToMotor' , self.hiddenNeurons, self.motorNeurons)
+		self.synapses['sensorToHidden'] = self._wireALayer(self.sensorNeurons, self.hiddenNeurons, synParams['sensorToHidden'])
+		self.synapses['hiddenToHidden'] = self._wireALayer(self.hiddenNeurons, self.hiddenNeurons, synParams['hiddenToHidden'])
+		self.synapses['hiddenToMotor' ] = self._wireALayer(self.hiddenNeurons, self.motorNeurons,  synParams['hiddenToMotor'])
 
-	def _wireALayer(self, synParams, layerLabel, ngroup1, ngroup2):
-		self.synapses[layerLabel] = [ self.sim.send_synapse(ngroup1[i], ngroup2[j], w) for i,j,w in synParams[layerLabel] ]
+	def _wireALayer(self, ngroup1, ngroup2, synapses):
+		return [ self.sim.send_synapse(ngroup1[i], ngroup2[j], w) for i,j,w in synapses ]
 
 	def getSensorData(self):
 		sensorData = []
@@ -166,30 +172,80 @@ class AssemblerWithSwitch(Assembler):
 	def _addController(self, controllerParams):
 		self.numBehavioralControllers = controllerParams['numBehavioralControllers']
 
-		self._addSensorNeurons() # from base class
-		self._addTrueMotorNeurons()
+		self.sensorNeurons = self._addSensorNeurons() # from base class
+		self.trueMotorNeurons = self._addTrueMotorNeurons()
 
+		self.behavioralControllers = []
 		for bc in controllerParams['behavioralControllers']:
-			self._addBehavioralController(bc)
+			self.behavioralControllers.append(self._addBehavioralController(bc))
 
-		self._addGoverningController(controllerParams['governingController'])
+		self.governingController = self._addGoverningController(controllerParams['governingController'])
 
-#		self._addHiddenNeurons(annParams['hiddenNeuronParams'])
-#		self._addMotorNeurons(annParams['motorNeuronParams'])
-#		self._addSynapses(annParams['synapsesParams'])
+		self._addParallelSwitch()
 
 	def _addTrueMotorNeurons(self):
-		self.trueMotorNeurons = []
+		trueMotorNeurons = []
 		for mot, mii in self.motors:
-			self.trueMotorNeurons.append(self.sim.send_motor_neuron(joint_id=mot,
+			trueMotorNeurons.append(self.sim.send_motor_neuron(joint_id=mot,
 	                                                            start_value=0.,
 	                                                            tau=1.,
 	                                                            alpha=0.,
 			                                                        input_index=mii))
 		# NOTE: start value is questionable
+		return trueMotorNeurons
 
 	def _addBehavioralController(self, bcparams):
-		pass
+		controller = {}
+		controller['numHiddenNeurons'] = bcparams['numHiddenNeurons']
+
+		controller['hiddenNeurons'] = self._addHiddenNeurons(bcarams['hiddenNeuronsParams'])
+		controller['motorNeurons'] = self._addHiddenNeurons(bcarams['motorNeuronsParams'], addBias=False)
+
+		synParams = bcparams['synapsesParams']
+		controller['synapses'] = {}
+		controller['synapses']['sensorToHidden'] = self._wireALayer(self.sensorNeurons, controller['hiddenNeurons'], synParams['sensorToHidden'])
+		controller['synapses']['hiddenToHidden'] = self._wireALayer(controller['hiddenNeurons'], controller['hiddenNeurons'], synParams['hiddenToHidden'])
+		controller['synapses']['hiddenToMotor' ] = self._wireALayer(controller['hiddenNeurons'], controller['motorNeurons'],  synParams['hiddenToMotor'])
+
+		return controller
 
 	def _addGoverningController(self, gcparams):
-		pass
+		controller = {}
+		controller['numHiddenNeurons'] = gcparams['numHiddenNeurons']
+
+		controller['hiddenNeurons'] = self._addHiddenNeurons(bcarams['hiddenNeuronsParams'])
+		controller['governingNeurons'] = self._addHiddenNeurons(bcarams['governingNeuronsParams'], addBias=False)
+
+		synParams = bcparams['synapsesParams']
+		controller['synapses'] = {}
+		controller['synapses']['sensorToHidden']     = self._wireALayer(self.sensorNeurons,          controller['hiddenNeurons'],    synParams['sensorToHidden'])
+		controller['synapses']['trueMotorToHidden']  = self._wireALayer(self.trueMotorNeurons,       controller['hiddenNeurons'],    synParams['sensorToHidden'])
+		controller['synapses']['hiddenToHidden']     = self._wireALayer(controller['hiddenNeurons'], controller['hiddenNeurons'],    synParams['hiddenToHidden'])
+		controller['synapses']['hiddenToGoverning' ] = self._wireALayer(controller['hiddenNeurons'], controller['governingNeurons'], synParams['hiddenToMotor'] )
+
+		return controller
+
+	def _addParallelSwitch(self):
+		# We need to validate the controllers first before we place our gem :)
+		numChannels = self.numSensors
+		numOptions = self.numBehavioralControllers
+
+		if not numOptions == len(self.behavioralControllers):
+			raise ValueError('Declared number of behavioral controllers ({}) is different from the number of controllers supplied ({}). Cannot add parallel switch.'.format(numOptions, len(self.behavioralControllers)))
+		for i,bc in enumerate(self.behavioralControllers):
+			if not len(bc['motorNeurons']) == numChannels:
+				raise ValueError('Number of outputs of {}th behavioral controller is different from the number of motors ({}). Cannot add parallel switch.'.format(i, numChannels))
+
+		self.parallelSwitch = {}
+
+		psinputs = []
+		for bc in self.behavioralControllers:
+			psinputs.append(bc['motorNeurons'])
+		psoutputs = self.sim.send_parallel_switch(numChannels, numOptions, psinputs, self.governingController['governingNeurons'])
+
+		pssynapses = []
+		for i,out in enumerate(psoutputs):
+			pssynapses.append(self.sim.send_synapse(out, self.trueMotorNeurons[i], 1.0))
+
+		self.parallelSwitch['outputs'] = psoutputs
+		self.parallelSwitch['synapses'] = pssynapses
