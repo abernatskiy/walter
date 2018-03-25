@@ -20,15 +20,20 @@ class Assembler(object):
 	default_num_sensors = 5
 	# FIXME: make maps from a string labels of to sensor/motor returning functions and facilities for calling these functions with any additional parameters needed
 
-	def __init__(self, sim, initpos):
+	def __init__(self, sim, initpos, kind_of_light=0):
 		'''Creates an assembler robot at the geometrical position initpos'''
-		x,y,z = initpos
-		bcr,bcg,bcb = Assembler.body_color
 
 		self.sim = sim
 
+		self._createBaselineAssemblerInSimulation(initpos, kind_of_light=kind_of_light)
+		self._addGToPMap()
+
+	def _createBaselineAssemblerInSimulation(self, initpos, kind_of_light=0):
+		x,y,z = initpos
+		bcr,bcg,bcb = Assembler.body_color
+
 		# Robot's body
-		self.body = sim.send_sphere(x=x, y=y, z=z,
+		self.body = self.sim.send_sphere(x=x, y=y, z=z,
 		                            radius=Assembler.body_radius,
 		                            mass=Assembler.body_mass,
 		                            r=bcr, g=bcg, b=bcb)
@@ -36,17 +41,17 @@ class Assembler(object):
 		# Motors
 		self.motors = []
 
-		thruster = sim.send_thruster(self.body,
+		thruster = self.sim.send_thruster(self.body,
 		                             x=x, y=y, z=z-Assembler.body_radius,
 		                             lo=0., hi=-1.*Assembler.max_thrust, threshold=Assembler.thrust_threshold)
 		self.motors.append((thruster, 0))
 
-		rcw = sim.send_reaction_control_wheel(self.body,
+		rcw = self.sim.send_reaction_control_wheel(self.body,
 		                                      max_torque=Assembler.max_torque)
 		for input_index in [0,1,2]:
 			self.motors.append((rcw, input_index))
 
-		sticky = sim.send_adhesive_joint(self.body, adhesion_kind=Assembler.adhesion_kind)
+		sticky = self.sim.send_adhesive_joint(self.body, adhesion_kind=Assembler.adhesion_kind)
 		self.motors.append((sticky, 0))
 
 		self.numMotors = Assembler.default_num_motors
@@ -55,25 +60,25 @@ class Assembler(object):
 		# Sensors
 		self.sensors = []
 
-		proximitySensor = sim.send_proximity_sensor(body_id=self.body,
+		proximitySensor = self.sim.send_proximity_sensor(body_id=self.body,
 		                                            x=0, y=0, z=0,
 		                                            max_distance=Assembler.proximity_range) # FIXME: add a realistic offset eventually
 		for svi in Assembler.proximity_channels:
 			self.sensors.append((proximitySensor, svi))
 
-		lightSensor = sim.send_light_sensor(self.body) # FIXME: add a realistic offset eventually
+		lightSensor = self.sim.send_light_sensor(self.body,
+		                                    kind_of_light=kind_of_light,
+		                                    logarithmic=True) # FIXME: add a realistic offset eventually
 		self.sensors.append((lightSensor, 0))
 
-		stickinessSensor = sim.send_proprioceptive_sensor(joint_id=sticky)
+		stickinessSensor = self.sim.send_proprioceptive_sensor(joint_id=sticky)
 		self.sensors.append((stickinessSensor, 0))
 
 		self.numSensors = Assembler.default_num_sensors
 		self.sensorLabels = Assembler.default_sensor_labels
 
-		self._addGToPMap()
-
 	def _addGToPMap(self):
-		self.gtop = g2p.GenotypeToPhenotypeMap(self.numSensors, self.numMotors)
+		self.gtop = g2p.gtopSimple(self.numSensors, self.numMotors)
 
 	def connectTetherToOther(self, other):
 		assert self.sim.id == other.sim.id, 'Robots must be in the same simulator to connect them with tethers'
@@ -94,7 +99,9 @@ class Assembler(object):
 
 	def setController(self, controllerStr):
 		annParams = self.gtop.getPhenotype(controllerStr)
+		self._addController(annParams)
 
+	def _addController(self, annParams):
 		self.numHiddenNeurons = annParams['numHiddenNeurons']
 
 		self._addSensorNeurons()
@@ -141,10 +148,45 @@ class Assembler(object):
 		self.synapses = {}
 		self.synapses['sensorToHidden'] = [ self.sim.send_synapse(self.sensorNeurons[i],self.hiddenNeurons[j],w) for i,j,w in synParams['sensorToHidden'] ]
 		self.synapses['hiddenToHidden'] = [ self.sim.send_synapse(self.hiddenNeurons[i],self.hiddenNeurons[j],w) for i,j,w in synParams['hiddenToHidden'] ]
-		self.synapses['hiddenToMotor'] = [ self.sim.send_synapse(self.hiddenNeurons[i],self.motorNeurons[j],w) for i,j,w in synParams['hiddenToMotor'] ]
+		self.synapses['hiddenToMotor']  = [ self.sim.send_synapse(self.hiddenNeurons[i],self.motorNeurons[j],w)  for i,j,w in synParams['hiddenToMotor']  ]
 
 	def getSensorData(self):
 		sensorData = []
 		for sen, svi in self.sensors:
 			sensorData.append(self.sim.get_sensor_data(sen, svi=svi))
 		return sensorData
+
+class AssemblerWithSwitch(Assembler):
+	def _addGToPMap(self):
+		self.gtop = g2p.gtopWithSwitch(self.numSensors, self.numMotors)
+
+	def _addController(self, controllerParams):
+		self.numBehavioralControllers = controllerParams['numBehavioralControllers']
+
+		self._addSensorNeurons() # from base class
+		self._addTrueMotorNeurons()
+
+		for bc in controllerParams['behavioralControllers']:
+			self._addBehavioralController(bc)
+
+		self._addGoverningController(controllerParams['governingController'])
+
+#		self._addHiddenNeurons(annParams['hiddenNeuronParams'])
+#		self._addMotorNeurons(annParams['motorNeuronParams'])
+#		self._addSynapses(annParams['synapsesParams'])
+
+	def _addTrueMotorNeurons(self):
+		self.trueMotorNeurons = []
+		for mot, mii in self.motors:
+			self.trueMotorNeurons.append(self.sim.send_motor_neuron(joint_id=mot,
+	                                                            start_value=0.,
+	                                                            tau=1.,
+	                                                            alpha=0.,
+			                                                        input_index=mii))
+		# NOTE: start value is questionable
+
+	def _addBehavioralController(self, bcparams):
+		pass
+
+	def _addGoverningController(self, gcparams):
+		pass
