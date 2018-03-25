@@ -2,6 +2,7 @@
 
 import pyrosim
 import assembler
+import fleet
 import parts
 
 seconds = 15.0
@@ -11,39 +12,48 @@ play_blind = True
 play_paused = False
 debug = False
 
-initial_conditions = [0,0,3]
+def createEnvironment(sim):
+	partList = []
+	partList.append(parts.Cylinder(sim, (10.,0., 3.), (1.,0.,0.)))
+	return partList
 
-def evaluateController(initialConditions, controllerStr, assemblerType=assembler.Assembler):
+def addSingleRobot(sim, controllerStr):
+	ass0 = assembler.Assembler(sim, [0,0,3])
+	ass0.setController(controllerStr)
+	return ass0
+
+def addSingleRobotWithSwitch(sim, controllerStr):
+	ass0 = assembler.AssemblerWithSwitch(sim, [0,0,3])
+	ass0.setController(controllerStr)
+	return ass0
+
+def singleRobotFitness(ass0, env):
+	assemblerSensorData = ass0.getSensorData()
+	return sum(assemblerSensorData[3]) - sum(assemblerSensorData[0]) # integral of light minus integral of proximity
+
+def addFleet(sim, controllerStr):
+	fleet = fleet.SixFleet(sim, pos=[0,0,0], kinds_of_light=[10,20,30])
+	fleet.setController(controllerStr)
+	return fleet
+
+def fleetFitness(robot, env):
+	return 0.
+
+def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment, fitness=singleRobotFitness):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
 	eval_time = int(seconds/dt)
 	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0.,
 	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=False, use_textures=True,
 	                        xyz=camera_pos)
-	ass0 = assemblerType(sim, initialConditions)
-	ass0.setController(controllerStr)
 
-	part0 = parts.Cylinder(sim, (10.,0., 3.), (1.,0.,0.))
+	env = environment_creator(sim)
+	robot = robot_adder(sim, controllerStr)
 
 	sim.create_collision_matrix('all')
 	sim.start()
 	sim.wait_to_finish()
 
-	assemblerSensorData = ass0.getSensorData()
-
-	return sum(assemblerSensorData[3]) - sum(assemblerSensorData[0]) # integral of light minus integral of proximity
-
-def evaluateControllerOnFleet(controllerStr):
-	global debug, play_blind, play_paused, camera_pos, dt, seconds
-	eval_time = int(seconds/dt)
-	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0.,
-	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=False, use_textures=True,
-	                        xyz=camera_pos)
-	assemblers = []
-	for i in range(3):
-		assemblers.append(assembler.AssemblerWithSwitch(sim, [0, i-1, -1], kind_of_light=10*(i+1)))
-		assemblers.append(assembler.AssemblerWithSwitch(sim, [0, i-1, 1], kind_of_light=10*(i+1)))
-		assemblers[-2].connectTetherToOther(assemblers[-1])
-
+	return fitness(robot, env)
 
 def readGenomes(inFile):
 	genomes = {}

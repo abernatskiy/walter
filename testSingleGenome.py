@@ -52,6 +52,9 @@ testGenomes['420'] = (
 
 import assembler
 
-scores = [ evaluator.evaluateController(evaluator.initial_conditions, cs, assemblerType=assembler.AssemblerWithSwitch) for cs in [testGenomes['420']] ]
+#scores = [ evaluator.evaluateController(cs) for cs in [testGenomes['42']] ]
+
+scores = [ evaluator.evaluateController(cs, robot_adder=evaluator.addSingleRobotWithSwitch) for cs in [testGenomes['420']] ]
+
 
 print(scores)

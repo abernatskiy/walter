@@ -1,5 +1,4 @@
 import json
-import genotypeToPhenotype as g2p
 
 class Assembler(object):
 	body_radius = 0.5
