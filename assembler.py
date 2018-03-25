@@ -146,9 +146,12 @@ class Assembler(object):
 
 	def _addSynapses(self, synParams):
 		self.synapses = {}
-		self.synapses['sensorToHidden'] = [ self.sim.send_synapse(self.sensorNeurons[i],self.hiddenNeurons[j],w) for i,j,w in synParams['sensorToHidden'] ]
-		self.synapses['hiddenToHidden'] = [ self.sim.send_synapse(self.hiddenNeurons[i],self.hiddenNeurons[j],w) for i,j,w in synParams['hiddenToHidden'] ]
-		self.synapses['hiddenToMotor']  = [ self.sim.send_synapse(self.hiddenNeurons[i],self.motorNeurons[j],w)  for i,j,w in synParams['hiddenToMotor']  ]
+		self._wireALayer(synParams, 'sensorToHidden', self.sensorNeurons, self.hiddenNeurons)
+		self._wireALayer(synParams, 'hiddenToHidden', self.hiddenNeurons, self.hiddenNeurons)
+		self._wireALayer(synParams, 'hiddenToMotor' , self.hiddenNeurons, self.motorNeurons)
+
+	def _wireALayer(self, synParams, layerLabel, ngroup1, ngroup2):
+		self.synapses[layerLabel] = [ self.sim.send_synapse(ngroup1[i], ngroup2[j], w) for i,j,w in synParams[layerLabel] ]
 
 	def getSensorData(self):
 		sensorData = []
