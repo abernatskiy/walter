@@ -1,3 +1,4 @@
+import json
 import genotypeToPhenotype as g2p
 
 class Assembler(object):
@@ -26,7 +27,6 @@ class Assembler(object):
 		self.sim = sim
 
 		self._createBaselineAssemblerInSimulation(initpos, kind_of_light=kind_of_light)
-		self._addGToPMap()
 
 	def _createBaselineAssemblerInSimulation(self, initpos, kind_of_light=0):
 		x,y,z = initpos
@@ -77,9 +77,6 @@ class Assembler(object):
 		self.numSensors = Assembler.default_num_sensors
 		self.sensorLabels = Assembler.default_sensor_labels
 
-	def _addGToPMap(self):
-		self.gtop = g2p.gtopSimple(self.numSensors, self.numMotors)
-
 	def connectTetherToOther(self, other):
 		assert self.sim.id == other.sim.id, 'Robots must be in the same simulator to connect them with tethers'
 		tether = sim.send_tether(self.body, other.body, force_coefficient=Assembler.tether_force_coefficient, dampening_coefficient=Assembler.tether_dampening_coefficient)
@@ -95,10 +92,8 @@ class Assembler(object):
 		self.sensorLabels.append('tetherTension')
 		self.numSensors += 1
 
-		self._addGToPMap()
-
 	def setController(self, controllerStr):
-		annParams = self.gtop.getPhenotype(controllerStr)
+		annParams = json.loads(controllerStr)
 		self._addController(annParams)
 
 	def _addController(self, annParams):
@@ -166,9 +161,6 @@ class Assembler(object):
 		return sensorData
 
 class AssemblerWithSwitch(Assembler):
-	def _addGToPMap(self):
-		self.gtop = g2p.gtopWithSwitch(self.numSensors, self.numMotors)
-
 	def _addController(self, controllerParams):
 		self.numBehavioralControllers = controllerParams['numBehavioralControllers']
 

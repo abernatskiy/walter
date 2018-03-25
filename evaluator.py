@@ -16,7 +16,6 @@ initial_conditions = [0,0,3]
 def evaluateController(initialConditions, controllerStr, assemblerType=assembler.Assembler):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
 	eval_time = int(seconds/dt)
-	print('Play blind is ', play_blind)
 	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0.,
 	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=False, use_textures=True,
 	                        xyz=camera_pos)
@@ -32,6 +31,19 @@ def evaluateController(initialConditions, controllerStr, assemblerType=assembler
 	assemblerSensorData = ass0.getSensorData()
 
 	return sum(assemblerSensorData[3]) - sum(assemblerSensorData[0]) # integral of light minus integral of proximity
+
+def evaluateControllerOnFleet(controllerStr):
+	global debug, play_blind, play_paused, camera_pos, dt, seconds
+	eval_time = int(seconds/dt)
+	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0.,
+	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=False, use_textures=True,
+	                        xyz=camera_pos)
+	assemblers = []
+	for i in range(3):
+		assemblers.append(assembler.AssemblerWithSwitch(sim, [0, i-1, -1], kind_of_light=10*(i+1)))
+		assemblers.append(assembler.AssemblerWithSwitch(sim, [0, i-1, 1], kind_of_light=10*(i+1)))
+		assemblers[-2].connectTetherToOther(assemblers[-1])
+
 
 def readGenomes(inFile):
 	genomes = {}
