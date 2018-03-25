@@ -13,14 +13,14 @@ debug = False
 
 initial_conditions = [0,0,3]
 
-def evaluateController(initialConditions, controllerStr):
+def evaluateController(initialConditions, controllerStr, assemblerType=assembler.Assembler):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
 	eval_time = int(seconds/dt)
 	print('Play blind is ', play_blind)
 	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0.,
 	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=False, use_textures=True,
 	                        xyz=camera_pos)
-	ass0 = assembler.Assembler(sim, initialConditions)
+	ass0 = assemblerType(sim, initialConditions)
 	ass0.setController(controllerStr)
 
 	part0 = parts.Cylinder(sim, (10.,0., 3.), (1.,0.,0.))

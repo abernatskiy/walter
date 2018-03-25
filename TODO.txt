@@ -16,3 +16,6 @@ Default tension for massless tethers
 Wishful thinking - non-massless tethers, realistic magnetic grippers
 
 After the introduction of tethers and adhesors - find example genomes that test these
+
+Testing TBD:
+1. See switching controller in action

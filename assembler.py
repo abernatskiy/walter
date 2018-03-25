@@ -198,8 +198,8 @@ class AssemblerWithSwitch(Assembler):
 		controller = {}
 		controller['numHiddenNeurons'] = bcparams['numHiddenNeurons']
 
-		controller['hiddenNeurons'] = self._addHiddenNeurons(bcarams['hiddenNeuronsParams'])
-		controller['motorNeurons'] = self._addHiddenNeurons(bcarams['motorNeuronsParams'], addBias=False)
+		controller['hiddenNeurons'] = self._addHiddenNeurons(bcparams['hiddenNeuronsParams'])
+		controller['motorNeurons'] = self._addHiddenNeurons(bcparams['motorNeuronsParams'], addBias=False)
 
 		synParams = bcparams['synapsesParams']
 		controller['synapses'] = {}
@@ -213,15 +213,15 @@ class AssemblerWithSwitch(Assembler):
 		controller = {}
 		controller['numHiddenNeurons'] = gcparams['numHiddenNeurons']
 
-		controller['hiddenNeurons'] = self._addHiddenNeurons(bcarams['hiddenNeuronsParams'])
-		controller['governingNeurons'] = self._addHiddenNeurons(bcarams['governingNeuronsParams'], addBias=False)
+		controller['hiddenNeurons'] = self._addHiddenNeurons(gcparams['hiddenNeuronsParams'])
+		controller['governingNeurons'] = self._addHiddenNeurons(gcparams['governingNeuronsParams'], addBias=False)
 
-		synParams = bcparams['synapsesParams']
+		synParams = gcparams['synapsesParams']
 		controller['synapses'] = {}
 		controller['synapses']['sensorToHidden']     = self._wireALayer(self.sensorNeurons,          controller['hiddenNeurons'],    synParams['sensorToHidden'])
-		controller['synapses']['trueMotorToHidden']  = self._wireALayer(self.trueMotorNeurons,       controller['hiddenNeurons'],    synParams['sensorToHidden'])
+		controller['synapses']['trueMotorToHidden']  = self._wireALayer(self.trueMotorNeurons,       controller['hiddenNeurons'],    synParams['trueMotorToHidden'])
 		controller['synapses']['hiddenToHidden']     = self._wireALayer(controller['hiddenNeurons'], controller['hiddenNeurons'],    synParams['hiddenToHidden'])
-		controller['synapses']['hiddenToGoverning' ] = self._wireALayer(controller['hiddenNeurons'], controller['governingNeurons'], synParams['hiddenToMotor'] )
+		controller['synapses']['hiddenToGoverning' ] = self._wireALayer(controller['hiddenNeurons'], controller['governingNeurons'], synParams['hiddenToGoverning'] )
 
 		return controller
 
@@ -234,7 +234,7 @@ class AssemblerWithSwitch(Assembler):
 			raise ValueError('Declared number of behavioral controllers ({}) is different from the number of controllers supplied ({}). Cannot add parallel switch.'.format(numOptions, len(self.behavioralControllers)))
 		for i,bc in enumerate(self.behavioralControllers):
 			if not len(bc['motorNeurons']) == numChannels:
-				raise ValueError('Number of outputs of {}th behavioral controller is different from the number of motors ({}). Cannot add parallel switch.'.format(i, numChannels))
+				raise ValueError('Number of outputs of {}th behavioral controller ({}) is different from the number of motors ({}). Cannot add parallel switch.'.format(i, len(bc['motorNeurons']),numChannels))
 
 		self.parallelSwitch = {}
 
