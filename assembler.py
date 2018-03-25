@@ -78,16 +78,16 @@ class Assembler(object):
 
 	def connectTetherToOther(self, other):
 		assert self.sim.id == other.sim.id, 'Robots must be in the same simulator to connect them with tethers'
-		tether = sim.send_tether(self.body, other.body, force_coefficient=Assembler.tether_force_coefficient, dampening_coefficient=Assembler.tether_dampening_coefficient)
-		tether_proprioception = sim.send_proprioceptive_sensor(joint_id=tether)
+		tether = self.sim.send_tether(self.body, other.body, force_coefficient=Assembler.tether_force_coefficient, dampening_coefficient=Assembler.tether_dampening_coefficient)
+		tether_proprioception = self.sim.send_proprioceptive_sensor(joint_id=tether)
 		self._addTether(tether, tether_proprioception, 0)
 		other._addTether(tether, tether_proprioception, 1)
 
 	def _addTether(self, tether_id, proprioceptive_sensor_id, index):
-		self.motors.append = (tether_id, index)
+		self.motors.append((tether_id, index))
 		self.motorLabels.append('tether')
 		self.numMotors += 1
-		self.sensors.append = (proprioceptive_sensor_id, index)
+		self.sensors.append((proprioceptive_sensor_id, index))
 		self.sensorLabels.append('tetherTension')
 		self.numSensors += 1
 

@@ -32,9 +32,9 @@ def singleRobotFitness(ass0, env):
 	return sum(assemblerSensorData[3]) - sum(assemblerSensorData[0]) # integral of light minus integral of proximity
 
 def addFleet(sim, controllerStr):
-	fleet = fleet.SixFleet(sim, pos=[0,0,0], kinds_of_light=[10,20,30])
-	fleet.setController(controllerStr)
-	return fleet
+	myfleet = fleet.SixFleet(sim, pos=[0,0,0], kinds_of_light=[10,20,30])
+	myfleet.setController(controllerStr)
+	return myfleet
 
 def fleetFitness(robot, env):
 	return 0.
