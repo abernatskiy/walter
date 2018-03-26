@@ -5,7 +5,7 @@ import assembler
 import fleet
 import parts
 
-seconds = 15.0
+seconds = 1.0
 dt = 0.05
 camera_pos = [9,-12,12]
 play_blind = True
@@ -14,7 +14,8 @@ debug = False
 
 def createEnvironment(sim):
 	partList = []
-	partList.append(parts.Cylinder(sim, (10.,0., 3.), (1.,0.,0.)))
+	partList.append(parts.Cylinder(sim, (10.,10., 3.), (-1.,0.,0.), 1))
+	partList.append(parts.Cylinder(sim, (-10.,10., 3.), (1.,0.,0.), -1))
 	return partList
 
 def addSingleRobot(sim, controllerStr):
@@ -36,13 +37,23 @@ def addFleet(sim, controllerStr):
 	myfleet.setController(controllerStr)
 	return myfleet
 
+def positioningError(twoParts):
+	partsTelemetry = [ part.getPartTelemetry() for part in twoParts ]
+	numPoints = len(partsTelemetry[0][0][0])
+	def pointDist(pt, sid, i):
+		return sum([ (pt[0][sid][j][i] - pt[1][sid][j][i])**2 for j in range(3) ])
+	#lightSqDistances = [ [ pointDist(partsTelemetry, sid, i) for sid in range(3) ] for i in range(numPoints) ] # for integral of square distance over time
+	lightSqDistances = [ [ pointDist(partsTelemetry, sid, i) for sid in range(3) ] for i in [-1] ] # for square distance at the last moment
+	return sum([ sum(dists) for dists in lightSqDistances ])
+
 def fleetFitness(robot, env):
-	return 0.
+	pe = positioningError(env)
+	return -pe
 
 def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment, fitness=singleRobotFitness):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
 	eval_time = int(seconds/dt)
-	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0.,
+	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0., disable_floor=True,
 	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=False, use_textures=True,
 	                        xyz=camera_pos)
 

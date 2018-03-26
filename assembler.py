@@ -1,10 +1,10 @@
 import json
 
 class Assembler(object):
-	body_radius = 0.5
+	body_radius = 0.25
 	body_mass = 1.0
 	body_color = (0.,1.,0.)
-	proximity_range = 2.0
+	proximity_range = 1.0
 	proximity_offset = (0.,0.,0.)
 	max_thrust = 1.0
 	thrust_threshold = -0.8
