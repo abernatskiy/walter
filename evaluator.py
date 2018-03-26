@@ -28,9 +28,21 @@ def addSingleRobotWithSwitch(sim, controllerStr):
 	ass0.setController(controllerStr)
 	return ass0
 
-def singleRobotFitness(ass0, env):
+def illuminationIntegral(ass0):
 	assemblerSensorData = ass0.getSensorData()
-	return sum(assemblerSensorData[3]) - sum(assemblerSensorData[0]) # integral of light minus integral of proximity
+	return sum(assemblerSensorData[3])
+
+def proximityIntegral(ass0):
+	assemblerSensorData = ass0.getSensorData()
+	return sum(assemblerSensorData[0])
+
+def wasStuckToStuff(ass0):
+	assemblerSensorData = ass0.getSensorData()
+	stickyTS = assemblerSensorData[4]
+	return 1. if any([ n!=0 for n in stickyTS]) else 0.
+
+def singleRobotFitness(ass0, env):
+	return illuminationIntegral(ass0) - proximityIntegral(ass0)
 
 def addFleet(sim, controllerStr):
 	myfleet = fleet.SixFleet(sim, pos=[0,0,0], kinds_of_light=[10,20,30])
@@ -46,9 +58,21 @@ def positioningError(twoParts):
 	lightSqDistances = [ [ pointDist(partsTelemetry, sid, i) for sid in range(3) ] for i in [-1] ] # for square distance at the last moment
 	return sum([ sum(dists) for dists in lightSqDistances ])
 
+def fleetIllumination(myfleet):
+	return sum([ illuminationIntegral(ass) for ass in myfleet.assemblers ])
+
+def fleetProximity(myfleet):
+	return sum([ proximityIntegral(ass) for ass in myfleet.assemblers ])
+
+def fleetStuck(myfleet):
+	return sum([ wasStuckToStuff(ass) for ass in myfleet.assemblers ])
+
 def fleetFitness(robot, env):
 	pe = positioningError(env)
-	return -pe
+	ill = fleetIllumination(robot)
+	prox = fleetProximity(robot)
+	stuck = fleetStuck(robot)
+	return -pe + ill - prox + stuck # didn't normalize lol
 
 def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment, fitness=singleRobotFitness):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
