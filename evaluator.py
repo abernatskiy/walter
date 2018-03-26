@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import pyrosim
 import assembler
@@ -120,5 +120,5 @@ if __name__ == "__main__":
 		genomes = readGenomes(inPipe)
 		evals = {}
 		for gid in sorted(genomes.keys()):
-			evals[gid] = evaluateController(initial_conditions, genomes[gid])
+			evals[gid] = evaluateController(genomes[gid], robot_adder=addFleet, fitness=fleetFitness)
 		writeEvals(outPipe, evals)

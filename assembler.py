@@ -1,4 +1,5 @@
 import json
+from copy import copy
 
 class Assembler(object):
 	body_radius = 0.25
@@ -232,7 +233,11 @@ class AssemblerWithSwitch(Assembler):
 		psinputs = []
 		for bc in self.behavioralControllers:
 			psinputs.append(bc['motorNeurons'])
-		psoutputs = self.sim.send_parallel_switch(numChannels, numOptions, psinputs, self.governingController['governingNeurons'])
+
+		if numOptions == 1:
+			psoutputs = copy(psinputs[0])
+		else:
+			psoutputs = self.sim.send_parallel_switch(numChannels, numOptions, psinputs, self.governingController['governingNeurons'])
 
 		pssynapses = []
 		for i,out in enumerate(psoutputs):
