@@ -5,9 +5,11 @@ import assembler
 import fleet
 import parts
 
-seconds = 1.0
+num_cores = 4 # doesn't really work for short simulations, and for long ones it overfills memory, but whatevs
+
+seconds = 200.0
 dt = 0.05
-camera_pos = [9,-12,12]
+camera_pos = [9, -12, 12]
 play_blind = True
 play_paused = False
 debug = False
@@ -74,7 +76,7 @@ def fleetFitness(robot, env):
 	stuck = fleetStuck(robot)
 	return -pe + ill - prox + stuck # didn't normalize lol
 
-def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment, fitness=singleRobotFitness):
+def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
 	eval_time = int(seconds/dt)
 	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0., disable_floor=True,
@@ -85,6 +87,11 @@ def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_cr
 	robot = robot_adder(sim, controllerStr)
 
 	sim.create_collision_matrix('all')
+	return sim, robot, env
+
+def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment, fitness=singleRobotFitness):
+	sim, robot, env = setUpEvaluation(controllerStr, robot_adder=robot_adder, environment_creator=environment_creator)
+
 	sim.start()
 	sim.wait_to_finish()
 
@@ -104,6 +111,12 @@ def writeEvals(outFile, evals):
 		for gid in sorted(evals.keys()):
 			output.write(str(gid) + ' ' + str(evals[gid]) + '\n')
 
+def chunks(l, n):
+	'''Yield successive n-sized chunks from l'''
+	for i in range(0, len(l), n):
+		yield l[i:i + n]
+
+
 if __name__ == "__main__":
 	# Parsing CLI
 	import argparse
@@ -115,10 +128,30 @@ if __name__ == "__main__":
 	inPipe = cliArgs.genomesFileName
 	outPipe = cliArgs.evalsFileName
 
+	fitness=fleetFitness
+
 	# Reading the genomes and evaluating them
 	while True:
 		genomes = readGenomes(inPipe)
 		evals = {}
-		for gid in sorted(genomes.keys()):
-			evals[gid] = evaluateController(genomes[gid], robot_adder=addFleet, fitness=fleetFitness)
+		for gidChunk in chunks(sorted(genomes.keys()), num_cores):
+			materialsChunk = []
+			for gid in gidChunk:
+				materialsChunk.append(setUpEvaluation(genomes[gid],
+				                                      robot_adder=addFleet,
+				                                      environment_creator=createEnvironment))
+#			print('evaluating genomes {}'.format(str(gidChunk)))
+
+			for sim, _, _ in materialsChunk:
+				sim.start()
+#			print('simulations started')
+
+			for sim, _, _ in materialsChunk:
+				sim.wait_to_finish()
+#			print('simulations done')
+
+			for gid, (_, robot, env) in zip(gidChunk, materialsChunk):
+				evals[gid] = fitness(robot, env)
+#			print('fitness recorded')
+
 		writeEvals(outPipe, evals)
