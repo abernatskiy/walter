@@ -110,7 +110,7 @@ def readGenomes(inFile):
 	genomes = {}
 	with open(inFile, 'r') as input:
 		for line in input:
-			print('Read genome ' + line)
+			# print('Read genome ' + line)
 			id, genome = line.split(' ', 1)
 			id = int(id)
 			genomes[id] = genome[:-1]
