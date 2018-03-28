@@ -23,7 +23,7 @@ queue = 'shortq'
 expectedWallClockTime = '03:00:00'
 
 # Constant hyperparameters
-evsDefaults =
+evsDefaults = \
 { 'individual': 'ctrnnWithSwitchFleetOfIdenticals', 'evolver': 'afpo', 'communicator': 'parallelUnixPipe',
 'fleetSize': 6, 'numSensorNeurons': 6, 'numMotorNeurons': 6, 'initNumBehavioralControllers': 1,
 'mutGoverning': 0.2,
@@ -37,12 +37,13 @@ evsDefaults =
 'backup': 'yes', 'backupPeriod': 100, 'trackAncestry': 'no',
 'logBestIndividual': 'yes', 'logPopulation': 'no',
 'printGeneration': 'yes', 'printPopulation': 'no', 'printParetoFront': 'yes',
-'logParetoFront': 'yes', 'logParetoFrontKeepAllGenerations': 'yes', 'logParetoFrontPeriod': 1 }
+'logParetoFront': 'yes', 'logParetoFrontKeepAllGenerations': 'yes', 'logParetoFrontPeriod': 1,
+'randomSeed': 42}
 
 ### Required pbsGridWalker definitions
 computationName = 'parametricSwipe'
 
-nonRSGrid = gr.LinGrid('mutGoverning', 0.2, 0.2, 0, 1)
+nonRSGrid = gr.LinGrid('mutGoverning', 0.2, 0.2, 0, 0)
 parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
 
 for par in parametricGrid.paramNames():
@@ -52,7 +53,7 @@ def prepareEnvironment(experiment):
 	ce.prepareEnvironment(experiment)
 
 def runComputationAtPoint(worker, params):
-	return ce.runComputationAtPoint(worker, params, evsDefaults, arrowbotsDefaults, parallelClients=cores)
+	return ce.runComputationAtPoint(worker, params, evsDefaults, parallelClients=cores)
 
 def processResults(experiment):
 	with open('resultsProcessed.txt', 'w') as rpf:

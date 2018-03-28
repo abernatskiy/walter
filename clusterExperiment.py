@@ -24,7 +24,7 @@ def runComputationAtPoint(worker, params, evsAdditionalParams, parallelClients=1
 	print('Server params: ' + str(serverParams))
 	#clientParams = tal.sumOfDicts(parsedParams['client'], arrowbotsAdditionalParams)
 	#print('Client params: ' + str(clientParams))
-	tiniw.write(serverParams, classifiers.evsClassifier, 'evs.ini')
+	tiniw.write(serverParams, cl.evsClassifier, 'evs.ini')
 	#tiniw.write(clientParams, classifiers.arrowbotsClassifier, 'arrowbot.ini')
 	#tfio.writeColumns(arrowbotInitialConditions, 'initialConditions.dat')
 	#tfio.writeColumns(arrowbotTargetOrientations, 'targetOrientations.dat')
@@ -37,9 +37,9 @@ def runComputationAtPoint(worker, params, evsAdditionalParams, parallelClients=1
 
 	clientProcs = []
 	for gf, ef in zip(geneFifos, evalFifos):
-		clientProcs.append(worker.spawnProcess([cr.evaluatorExecutable, gf, ef])
+		clientProcs.append(worker.spawnProcess([cr.evaluatorExecutable, gf, ef]))
 
-	if not worker.runCommand([cr.evsExecutable, 'indiv', 'evals', str(serverParams['randomSeed']), 'evs.ini']):
+	if not worker.runCommand([cr.evsExecutable, 'evals', 'indiv', str(serverParams['randomSeed']), 'evs.ini']):
 		return False
 
 	for cp in clientProcs:
