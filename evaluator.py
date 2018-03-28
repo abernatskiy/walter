@@ -5,9 +5,9 @@ import assembler
 import fleet
 import parts
 
-num_cores = 4 # doesn't really work for short simulations, and for long ones it overfills memory, but whatevs
+num_cores = 1 # doesn't really work for short simulations, and for long ones it overfills memory, but whatevs
 
-seconds = 200.0
+seconds = 20.0
 dt = 0.05
 camera_pos = [9, -12, 12]
 play_blind = True
@@ -41,6 +41,7 @@ def proximityIntegral(ass0):
 def wasStuckToStuff(ass0):
 	assemblerSensorData = ass0.getSensorData()
 	stickyTS = assemblerSensorData[4]
+	#print(stickyTS)
 	return 1. if any([ n!=0 for n in stickyTS]) else 0.
 
 def singleRobotFitness(ass0, env):
@@ -70,6 +71,8 @@ def fleetStuck(myfleet):
 	return sum([ wasStuckToStuff(ass) for ass in myfleet.assemblers ])
 
 def fleetFitness(robot, env):
+	if robot is None or env is None:
+		return -100000.
 	pe = positioningError(env)
 	ill = fleetIllumination(robot)
 	prox = fleetProximity(robot)
@@ -87,7 +90,13 @@ def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creat
 	robot = robot_adder(sim, controllerStr)
 
 	sim.create_collision_matrix('all')
-	return sim, robot, env
+
+	valid, error = sim.is_a_valid_simulation()
+	if valid:
+		return sim, robot, env
+	else:
+		print('Invalid simulation: {}'.format(error))
+		return sim, None, None
 
 def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment, fitness=singleRobotFitness):
 	sim, robot, env = setUpEvaluation(controllerStr, robot_adder=robot_adder, environment_creator=environment_creator)
@@ -101,6 +110,7 @@ def readGenomes(inFile):
 	genomes = {}
 	with open(inFile, 'r') as input:
 		for line in input:
+			print('Read genome ' + line)
 			id, genome = line.split(' ', 1)
 			id = int(id)
 			genomes[id] = genome[:-1]
@@ -140,6 +150,7 @@ if __name__ == "__main__":
 				materialsChunk.append(setUpEvaluation(genomes[gid],
 				                                      robot_adder=addFleet,
 				                                      environment_creator=createEnvironment))
+
 #			print('evaluating genomes {}'.format(str(gidChunk)))
 
 			for sim, _, _ in materialsChunk:
