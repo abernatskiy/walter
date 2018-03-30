@@ -31,17 +31,17 @@ def addSingleRobotWithSwitch(sim, controllerStr):
 	ass0.setController(controllerStr)
 	return ass0
 
-def illuminationIntegral(ass0):
+def illuminationAvg(ass0):
 	assemblerSensorData = ass0.getSensorData()
-	return sum(assemblerSensorData[3])
+	return sum(assemblerSensorData[3])/len(assemblerSensorData[3])
 
 def illuminationMax(ass0):
 	assemblerSensorData = ass0.getSensorData()
 	return max(assemblerSensorData[3])
 
-def proximityIntegral(ass0):
+def proximityAvg(ass0):
 	assemblerSensorData = ass0.getSensorData()
-	return sum(assemblerSensorData[0])
+	return sum(assemblerSensorData[0])/len(assemblerSensorData[0])
 
 def proximityMax(ass0):
 	assemblerSensorData = ass0.getSensorData()
@@ -68,13 +68,14 @@ def positioningError(twoParts):
 		return sum([ (pt[0][sid][j][i] - pt[1][sid][j][i])**2 for j in range(3) ])
 	#lightSqDistances = [ [ pointDist(partsTelemetry, sid, i) for sid in range(3) ] for i in range(numPoints) ] # for integral of square distance over time
 	lightSqDistances = [ [ pointDist(partsTelemetry, sid, i) for sid in range(3) ] for i in [-1] ] # for square distance at the last moment
-	return min([ sum(dists) for dists in lightSqDistances ])
+	return 375. - min([ sum(dists) for dists in lightSqDistances ])
 
 def fleetIllumination(myfleet):
-	return sum([ illuminationMax(ass) for ass in myfleet.assemblers ])
+	#print([ illuminationMax(ass) for ass in myfleet.assemblers ])
+	return sum([ illuminationAvg(ass) for ass in myfleet.assemblers ])
 
 def fleetProximity(myfleet):
-	return sum([ proximityMax(ass) for ass in myfleet.assemblers ])
+	return sum([ proximityAvg(ass) for ass in myfleet.assemblers ])
 
 def fleetStuck(myfleet):
 	return sum([ wasStuckToStuff(ass) for ass in myfleet.assemblers ])
@@ -86,6 +87,7 @@ def fleetFitness(robot, env):
 	ill = fleetIllumination(robot)
 	prox = fleetProximity(robot)
 	stuck = fleetStuck(robot)
+#	print('pe={} ill={} prox={} stuck={}'.format(pe, ill, prox, stuck))
 	return -pe + ill - prox + stuck # didn't normalize lol
 
 def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment):
