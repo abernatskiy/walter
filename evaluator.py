@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import json
 import pyrosim
 import assembler
 import fleet
@@ -34,9 +35,17 @@ def illuminationIntegral(ass0):
 	assemblerSensorData = ass0.getSensorData()
 	return sum(assemblerSensorData[3])
 
+def illuminationMax(ass0):
+	assemblerSensorData = ass0.getSensorData()
+	return max(assemblerSensorData[3])
+
 def proximityIntegral(ass0):
 	assemblerSensorData = ass0.getSensorData()
 	return sum(assemblerSensorData[0])
+
+def proximityMax(ass0):
+	assemblerSensorData = ass0.getSensorData()
+	return max(assemblerSensorData[0])
 
 def wasStuckToStuff(ass0):
 	assemblerSensorData = ass0.getSensorData()
@@ -59,13 +68,13 @@ def positioningError(twoParts):
 		return sum([ (pt[0][sid][j][i] - pt[1][sid][j][i])**2 for j in range(3) ])
 	#lightSqDistances = [ [ pointDist(partsTelemetry, sid, i) for sid in range(3) ] for i in range(numPoints) ] # for integral of square distance over time
 	lightSqDistances = [ [ pointDist(partsTelemetry, sid, i) for sid in range(3) ] for i in [-1] ] # for square distance at the last moment
-	return sum([ sum(dists) for dists in lightSqDistances ])
+	return min([ sum(dists) for dists in lightSqDistances ])
 
 def fleetIllumination(myfleet):
-	return sum([ illuminationIntegral(ass) for ass in myfleet.assemblers ])
+	return sum([ illuminationMax(ass) for ass in myfleet.assemblers ])
 
 def fleetProximity(myfleet):
-	return sum([ proximityIntegral(ass) for ass in myfleet.assemblers ])
+	return sum([ proximityMax(ass) for ass in myfleet.assemblers ])
 
 def fleetStuck(myfleet):
 	return sum([ wasStuckToStuff(ass) for ass in myfleet.assemblers ])
@@ -81,13 +90,17 @@ def fleetFitness(robot, env):
 
 def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
-	eval_time = int(seconds/dt)
+
+	genome = json.loads(controllerStr)
+	eval_time = int(genome['evaluationTime']/dt)
+	pureCS = json.dumps(genome['controller'])
+
 	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0., disable_floor=True,
 	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=False, use_textures=True,
 	                        xyz=camera_pos)
 
 	env = environment_creator(sim)
-	robot = robot_adder(sim, controllerStr)
+	robot = robot_adder(sim, pureCS)
 
 	sim.create_collision_matrix('all')
 
