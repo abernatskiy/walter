@@ -37,7 +37,7 @@ def runComputationAtPoint(worker, params, evsAdditionalParams, parallelClients=1
 
 	clientProcs = []
 	for gf, ef in zip(geneFifos, evalFifos):
-		clientProcs.append(worker.spawnProcess([cr.evaluatorExecutable, gf, ef]))
+		clientProcs.append(worker.spawnProcess([cr.python3, cr.evaluatorExecutable, gf, ef]))
 
 	if not worker.runCommand([cr.evsExecutable, 'evals', 'indiv', str(serverParams['randomSeed']), 'evs.ini']):
 		return False
