@@ -94,8 +94,8 @@ def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creat
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
 
 	genome = json.loads(controllerStr)
-	eval_time = int(genome['evaluationTime']/dt)
-	pureCS = json.dumps(genome['controller'])
+	eval_time = int(seconds/dt) if type(genome) is list else int(genome['evaluationTime']/dt)
+	pureCS = controllerStr if type(genome) is list else json.dumps(genome['controller'])
 
 	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0., disable_floor=True,
 	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=False, use_textures=True,
