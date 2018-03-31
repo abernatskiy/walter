@@ -16,11 +16,11 @@ import clusterExperiment as ce
 numTrials = 10
 
 # Optional definitions for pbsGridWalker that depend on run execution time
-cores = 20
+cores = 8
 pointsPerJob = 1
 maxJobs = 50
 queue = 'workq'
-expectedWallClockTime = '03:00:00'
+expectedWallClockTime = '10:00:00'
 
 # Constant hyperparameters
 evsDefaults = \
