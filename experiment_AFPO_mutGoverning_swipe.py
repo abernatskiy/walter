@@ -19,7 +19,7 @@ numTrials = 10
 cores = 20
 pointsPerJob = 1
 maxJobs = 50
-queue = 'shortq'
+queue = 'workq'
 expectedWallClockTime = '03:00:00'
 
 # Constant hyperparameters
