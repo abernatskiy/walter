@@ -13,14 +13,14 @@ import clusterClassifiers as cl
 import clusterExperiment as ce
 
 # Tunable hyperparameters
-numTrials = 1
+numTrials = 10
 
 # Optional definitions for pbsGridWalker that depend on run execution time
 cores = 8
 pointsPerJob = 1
-maxJobs = 8
-queue = 'shortq'
-expectedWallClockTime = '03:00:00'
+maxJobs = 50
+queue = 'workq'
+expectedWallClockTime = '10:00:00'
 
 # Constant hyperparameters
 evsDefaults = \
@@ -32,18 +32,18 @@ evsDefaults = \
 'behavioralNumHiddenNeurons': 6, 'behavioralMutModifyNeuron': 0.3, 'behavioralMutModifyConnection': 0.4, 'behavioralMutAddRemRatio': 1.,
 'weightScale': 1.,
 'populationSize': 100,
-'genStopAfter': 10000,
+'genStopAfter': 10,
 'initialPopulationType': 'sparse', 'secondObjectiveProbability': 1.0,
 'backup': 'yes', 'backupPeriod': 100, 'trackAncestry': 'no',
 'logBestIndividual': 'yes', 'logPopulation': 'no',
 'printGeneration': 'yes', 'printPopulation': 'no', 'printParetoFront': 'yes',
-'logParetoFront': 'yes', 'logParetoFrontKeepAllGenerations': 'yes', 'logParetoFrontPeriod': 1,
+'logParetoFront': 'yes', 'logParetoFrontKeepAllGenerations': 'yes', 'logParetoFrontPeriod': 10,
 'randomSeed': 42}
 
 ### Required pbsGridWalker definitions
 computationName = 'parametricSwipe'
 
-nonRSGrid = gr.LinGrid('mutGoverning', 0.2, 0.2, 0, 0)
+nonRSGrid = gr.LinGrid('mutGoverning', 0.1, 0.2, 0, 4)
 parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
 
 for par in parametricGrid.paramNames():

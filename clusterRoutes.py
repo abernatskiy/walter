@@ -12,3 +12,8 @@ randSeedFile = join(involvedGitRepositories['pbsGridWalker'], 'seedFiles', 'rand
 evsExecutable = join(involvedGitRepositories['evs'], 'evsServer.py')
 simulatorExecutable = join(involvedGitRepositories['pyrosim'], 'pyrosim', 'simulator', 'simulator')
 evaluatorExecutable = join(walterPath, 'evaluator.py')
+
+import imp
+pbsEnv = imp.load_source('pbsEnv', rt.pbsEnv)
+python3 = pbsEnv.python3
+python2 = pbsEnv.python2
