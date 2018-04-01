@@ -40,7 +40,7 @@ evsDefaults = \
 ### Required pbsGridWalker definitions
 computationName = 'afpo_simple'
 
-nonRSGrid = gr.Grid1d('mutModifyNeuron', 0.4, 0.1, 0, 0)
+nonRSGrid = gr.Grid1d('mutModifyNeuron', [0.4])
 parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
 
 for par in parametricGrid.paramNames():

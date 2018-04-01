@@ -1,7 +1,7 @@
-_indivClassParams = ['length', 'mutProbability', 'mutInsDelRatio', 'mutExploration',
+_indivClassParams = ['length', 'mutProbability', 'mutInsDelRatio', 'mutExploration', 'mutModifyNeuron', 'mutModifyConnection', 'mutAddRemRatio',
                      'initLowerLimit', 'initUpperLimit', 'lowerCap', 'upperCap',
                      'initProbabilityOfConnection', 'mutationAmplitude',
-                     'fleetSize', 'numSensorNeurons', 'numMotorNeurons', 'initNumBehavioralControllers',
+                     'fleetSize', 'numSensorNeurons', 'numMotorNeurons', 'initNumBehavioralControllers', 'numHiddenNeurons',
                      'mutGoverning', 'governingMutAddBehavioralController', 'governingMutRemoveBehavioralController',
                      'governingNumHiddenNeurons', 'governingMutModifyNeuron', 'governingMutModifyConnection', 'governingMutAddRemRatio',
                      'behavioralNumHiddenNeurons', 'behavioralMutModifyNeuron', 'behavioralMutModifyConnection', 'behavioralMutAddRemRatio', 'weightScale']
