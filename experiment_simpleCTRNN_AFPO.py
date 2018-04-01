@@ -18,7 +18,7 @@ numTrials = 50
 # Optional definitions for pbsGridWalker that depend on run execution time
 cores = 8
 pointsPerJob = 1
-maxJobs = 50
+maxJobs = 100
 queue = 'workq'
 expectedWallClockTime = '10:00:00'
 
