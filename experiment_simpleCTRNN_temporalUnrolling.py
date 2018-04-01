@@ -38,7 +38,7 @@ evsDefaults = \
 'randomSeed': 42}
 
 ### Required pbsGridWalker definitions
-computationName = 'temporal_simple_poptype'
+computationName = 'temporal_simple'
 
 nonRSGrid = gr.Grid1d('initialPopulationType', ['sparse', 'random'])*gr.Grid1d('newIndividualsPerGeneration', [1,4,16])
 parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
@@ -58,8 +58,8 @@ def processResults(experiment):
 	import numpy as np
 	import pbsGridWalker.tools.plotutils as tplt
 	tfs.makeDirCarefully('results', maxBackups=100)
-		def fitnessFileName(gp):
-		return 'NI' + gp['newIndividualsPerGeneration'] + '_IP' + gp['initialPopulationType'] + '_fitness'
+	def fitnessFileName(gp):
+		return 'NI' + str(gp['newIndividualsPerGeneration']) + '_IP' + gp['initialPopulationType'] + '_fitness'
 	def columnExtractor(gp):
 		outFile = fitnessFileName(gp)
 		subprocess.call('cut -d \' \' -f 2 bestIndividual*.log | tail -n +4 | tr \'\n\' \' \' >> ../results/' + outFile, shell=True)
@@ -98,7 +98,7 @@ def processResults(experiment):
 	for ip in ['sparse', 'random']:
 		dataDict = { ('NI='+str(ni)): robustLoadTxt(fitnessFileName({'initialPopulationType': ip, 'newIndividualsPerGeneration': ni})) for ni in [1,4,16] }
 
-		tplt.plotAllTimeSeries(dataDict, 'Error', 'tu_IP' + ip + '.png',
+		tplt.plotAllTimeSeries(dataDict, 'Fitness', 'tu_IP' + ip + '.png',
 		                           title=title, legendLocation=1, xlabel=xlabel,
 	  	                         xlimit=xlimit, ylimit=ylimit, xscale=xscale, yscale=yscale, margins=margins, alpha=alpha)
 

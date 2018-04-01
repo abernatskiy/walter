@@ -100,7 +100,7 @@ def processResults(experiment):
 	for ip in ['sparse', 'random']:
 		dataDict = { ip: robustLoadTxt(fitnessFileName({'initialPopulationType': ip})) }
 
-		tplt.plotAllTimeSeries(dataDict, 'Error', 'afpo_IP' + ip + '.png',
+		tplt.plotAllTimeSeries(dataDict, 'Fitness', 'afpo_IP' + ip + '.png',
 		                           title=title, legendLocation=1, xlabel=xlabel,
 	  	                         xlimit=xlimit, ylimit=ylimit, xscale=xscale, yscale=yscale, margins=margins, alpha=alpha)
 
