@@ -96,9 +96,9 @@ def processResults(experiment):
 #	                           xlimit=xlimit, ylimit=ylimit, figsize=(2.5,4), xscale=xscale, yscale=yscale, margins=margins)
 
 	for so in [0.7, 0.9, 1.0]:
-		dataDict = { ('SO='+str(so)): robustLoadTxt(fitnessFileName({'secondObjectiveProbability': so, 'newIndividualsPerGeneration': ni})) for ni in [0,1,4] }
+		dataDict = { ('NI='+str(ni)): robustLoadTxt(fitnessFileName({'secondObjectiveProbability': so, 'newIndividualsPerGeneration': ni})) for ni in [0,1,4] }
 
-		tplt.plotAllTimeSeries(dataDict, 'Fitness', 'tu_SO' + str(so) + '.png',
+		tplt.plotAllTimeSeries(dataDict, 'Fitness', 'pcc_SO' + str(so) + '.png',
 		                           title=title, legendLocation=1, xlabel=xlabel,
 	  	                         xlimit=xlimit, ylimit=ylimit, xscale=xscale, yscale=yscale, margins=margins, alpha=alpha)
 
