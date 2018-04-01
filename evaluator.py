@@ -8,7 +8,7 @@ import parts
 
 num_cores = 1 # doesn't really work for short simulations, and for long ones it overfills memory, but whatevs
 
-seconds = 20.0
+seconds = 52.0
 dt = 0.05
 camera_pos = [9, -12, 12]
 play_blind = True
