@@ -16,7 +16,7 @@ import clusterExperiment as ce
 numTrials = 10
 
 # Optional definitions for pbsGridWalker that depend on run execution time
-cores = 20
+cores = 8
 pointsPerJob = 1
 maxJobs = 50
 queue = 'shortq'
@@ -29,7 +29,7 @@ evsDefaults = \
 'mutModifyNeuron': 0.4, 'mutModifyConnection': 0.4, 'mutAddRemRatio': 1.,
 'weightScale': 1.,
 'populationSize': 100,
-'genStopAfter': 5000,
+'genStopAfter': 1000,
 'initialPopulationType': 'sparse', 'secondObjectiveProbability': 1.0,
 'backup': 'yes', 'backupPeriod': 100, 'trackAncestry': 'no',
 'logBestIndividual': 'yes', 'logPopulation': 'no',
@@ -40,7 +40,7 @@ evsDefaults = \
 ### Required pbsGridWalker definitions
 computationName = 'afpo_simple'
 
-nonRSGrid = gr.Grid1d('mutModifyNeuron', [0.4])
+nonRSGrid = gr.Grid1d('initialPopulationType', ['sparse', 'random'])
 parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
 
 for par in parametricGrid.paramNames():
