@@ -61,7 +61,7 @@ def addFleet(sim, controllerStr):
 	myfleet.setController(controllerStr)
 	return myfleet
 
-def positioningError(twoParts):
+def positioningFitness(twoParts):
 	partsTelemetry = [ part.getPartTelemetry() for part in twoParts ]
 	numPoints = len(partsTelemetry[0][0][0])
 	def pointDist(pt, sid, i):
@@ -83,12 +83,12 @@ def fleetStuck(myfleet):
 def fleetFitness(robot, env):
 	if robot is None or env is None:
 		return -100000.
-	pe = positioningError(env)
+	pf = positioningFitness(env)
 	ill = fleetIllumination(robot)
 	prox = fleetProximity(robot)
 	stuck = fleetStuck(robot)
-#	print('pe={} ill={} prox={} stuck={}'.format(pe, ill, prox, stuck))
-	return -pe + ill - prox + stuck # didn't normalize lol
+	#print('pf={} ill={} prox={} stuck={}'.format(pf, ill, prox, stuck))
+	return pf + ill - prox + stuck
 
 def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
