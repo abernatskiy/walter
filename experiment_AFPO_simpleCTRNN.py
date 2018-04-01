@@ -13,14 +13,14 @@ import clusterClassifiers as cl
 import clusterExperiment as ce
 
 # Tunable hyperparameters
-numTrials = 10
+numTrials = 50
 
 # Optional definitions for pbsGridWalker that depend on run execution time
 cores = 8
 pointsPerJob = 1
 maxJobs = 50
-queue = 'shortq'
-expectedWallClockTime = '03:00:00'
+queue = 'workq'
+expectedWallClockTime = '10:00:00'
 
 # Constant hyperparameters
 evsDefaults = \
@@ -29,7 +29,7 @@ evsDefaults = \
 'mutModifyNeuron': 0.4, 'mutModifyConnection': 0.4, 'mutAddRemRatio': 1.,
 'weightScale': 1.,
 'populationSize': 100,
-'genStopAfter': 1000,
+'genStopAfter': 5000,
 'initialPopulationType': 'sparse', 'secondObjectiveProbability': 1.0,
 'backup': 'yes', 'backupPeriod': 100, 'trackAncestry': 'no',
 'logBestIndividual': 'yes', 'logPopulation': 'no',
@@ -60,11 +60,10 @@ def processResults(experiment):
 	tfs.makeDirCarefully('results', maxBackups=100)
 #	def fitnessFileName(mutGoverning, newIndivs=1):
 #		return 'NI' + str(newIndivs) + '_MG' + str(mutGoverning) + '_fitness'
-	def fitnessFileName():
-		return 'fitness'
+	def fitnessFileName(gp):
+		return 'IP' + gp['initialPopulationType'] + '_fitness'
 	def columnExtractor(gp):
-#		outFile = fitnessFileName(gp['mutGoverning'])
-		outFile = fitnessFileName()
+		outFile = fitnessFileName(gp)
 		subprocess.call('cut -d \' \' -f 2 bestIndividual*.log | tail -n +4 | tr \'\n\' \' \' >> ../results/' + outFile, shell=True)
 		subprocess.call('echo >> ../results/' + outFile, shell=True)
 	experiment.executeAtEveryGridPointDir(columnExtractor)
@@ -98,10 +97,10 @@ def processResults(experiment):
 #	                           title=title, legendLocation=None, xlabel=xlabel,
 #	                           xlimit=xlimit, ylimit=ylimit, figsize=(2.5,4), xscale=xscale, yscale=yscale, margins=margins)
 
-#	for mgg in [0.1, 0.3, 0.5, 0.7, 0.9]:
-	dataDict = { 'afpo': robustLoadTxt(fitnessFileName()) }
+	for ip in ['sparse', 'random']:
+		dataDict = { ip: robustLoadTxt(fitnessFileName({'initialPopulationType': ip})) }
 
-	tplt.plotAllTimeSeries(dataDict, 'Error', 'afpo.png',
+		tplt.plotAllTimeSeries(dataDict, 'Error', 'afpo_IP' + ip + '.png',
 		                           title=title, legendLocation=1, xlabel=xlabel,
 	  	                         xlimit=xlimit, ylimit=ylimit, xscale=xscale, yscale=yscale, margins=margins, alpha=alpha)
 
