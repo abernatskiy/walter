@@ -7,8 +7,10 @@ class SixFleet(object):
 		x,y,z = pos
 		self.assemblers = []
 		for i in range(3):
-			self.assemblers.append(assembler.AssemblerWithSwitch(sim, [x, y+(i-1)*SixFleet.distance, z-SixFleet.distance], kind_of_light=kinds_of_light[i]))
-			self.assemblers.append(assembler.AssemblerWithSwitch(sim, [x, y+(i-1)*SixFleet.distance, z+SixFleet.distance], kind_of_light=kinds_of_light[i]))
+#			self.assemblers.append(assembler.AssemblerWithSwitch(sim, [x, y+(i-1)*SixFleet.distance, z-SixFleet.distance], kind_of_light=kinds_of_light[i]))
+#			self.assemblers.append(assembler.AssemblerWithSwitch(sim, [x, y+(i-1)*SixFleet.distance, z+SixFleet.distance], kind_of_light=kinds_of_light[i]))
+			self.assemblers.append(assembler.Assembler(sim, [x, y+(i-1)*SixFleet.distance, z-SixFleet.distance], kind_of_light=kinds_of_light[i]))
+			self.assemblers.append(assembler.Assembler(sim, [x, y+(i-1)*SixFleet.distance, z+SixFleet.distance], kind_of_light=kinds_of_light[i]))
 			self.assemblers[-2].connectTetherToOther(self.assemblers[-1])
 
 	def setController(self, controllerStr):
