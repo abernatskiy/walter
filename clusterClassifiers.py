@@ -21,7 +21,7 @@ evsClassifier = {'classes': ['individual', 'communicator', 'evolver'],
                              'printPopulation', 'printPopulationPeriod', 'printGeneration',
                              'printGenerationPeriod', 'backup', 'backupPeriod', 'logParetoFront',
                              'logParetoFrontPeriod', 'logParetoFrontKeepAllGenerations', 'logParetoSize',
-                             'randomSeed', 'morphologyControlIndivs']}
+                             'randomSeed', 'morphologyControlIndivs', 'newIndividualsPerGeneration']}
 
 evaluatorClassifier = {}
 
