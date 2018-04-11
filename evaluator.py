@@ -14,6 +14,7 @@ camera_pos = [9, -12, 12]
 play_blind = True
 play_paused = False
 debug = False
+capture = False
 
 def createEnvironment(sim):
 	partList = []
@@ -87,7 +88,7 @@ def fleetFitness(robot, env):
 	ill = fleetIllumination(robot)
 	prox = fleetProximity(robot)
 	stuck = fleetStuck(robot)
-#	print('pe={} ill={} prox={} stuck={}'.format(pe, ill, prox, stuck))
+	print('pe={} ill={} prox={} stuck={}'.format(pe, ill, prox, stuck))
 	return -pe + ill - prox + stuck # didn't normalize lol
 
 def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment):
@@ -98,7 +99,7 @@ def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creat
 	pureCS = controllerStr if type(genome) is list else json.dumps(genome['controller'])
 
 	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0., disable_floor=True,
-	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=False, use_textures=True,
+	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=capture, use_textures=True,
 	                        xyz=camera_pos)
 
 	env = environment_creator(sim)
@@ -178,5 +179,9 @@ if __name__ == "__main__":
 			for gid, (_, robot, env) in zip(gidChunk, materialsChunk):
 				evals[gid] = fitness(robot, env)
 #			print('fitness recorded')
+
+		if capture:
+			for sim, _, _ in materialsChunk:
+				sim.make_movie()
 
 		writeEvals(outPipe, evals)
