@@ -2,9 +2,9 @@
 
 import evaluator
 evaluator.play_blind = False
-evaluator.play_paused = True
+evaluator.play_paused = False
 evaluator.debug = True
-evaluator.capture = True
+evaluator.capture = False
 
 testGenomes = {}
 testGenomes['42'] = (
