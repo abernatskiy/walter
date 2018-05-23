@@ -9,6 +9,7 @@ class Assembler(object):
 	proximity_offset = (0.,0.,0.)
 	max_thrust = 1.0
 	thrust_threshold = -0.8
+	momentum_budget = 10.
 	max_torque = 0.1
 	tether_force_coefficient = 1.
 	tether_dampening_coefficient = 10.
@@ -46,11 +47,13 @@ class Assembler(object):
 
 		thruster = self.sim.send_thruster(self.body,
 		                             x=x, y=y, z=z-Assembler.body_radius,
-		                             lo=0., hi=-1.*Assembler.max_thrust, threshold=Assembler.thrust_threshold)
+		                             lo=0., hi=-1.*Assembler.max_thrust,
+		                             threshold=Assembler.thrust_threshold, momentumBudget=momentum_budget)
 		self.motors.append((thruster, 0))
 
 		rcw = self.sim.send_reaction_control_wheel(self.body,
-		                                      max_torque=Assembler.max_torque)
+		                                      max_torque=Assembler.max_torque,
+		                                      momentum_budgets=(0.05, 0.05, 0.05))
 		for input_index in [0,1,2]:
 			self.motors.append((rcw, input_index))
 
