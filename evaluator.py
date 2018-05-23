@@ -15,6 +15,9 @@ play_blind = True
 play_paused = False
 debug = False
 capture = False
+use_rcw_gauges = False
+use_fuel_gauge = False
+use_switching_controllers = False
 
 def createEnvironment(sim):
 	partList = []
@@ -58,7 +61,7 @@ def singleRobotFitness(ass0, env):
 	return illuminationIntegral(ass0) - proximityIntegral(ass0)
 
 def addFleet(sim, controllerStr):
-	myfleet = fleet.SixFleet(sim, pos=[0,0,0], kinds_of_light=[10,20,30])
+	myfleet = fleet.SixFleet(sim, pos=[0,0,0], kinds_of_light=[10,20,30], use_rcw_gauges=use_rcw_gauges, use_fuel_gauge=use_fuel_gauge, use_switching_controllers=use_switching_controllers)
 	myfleet.setController(controllerStr)
 	return myfleet
 

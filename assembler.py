@@ -21,12 +21,15 @@ class Assembler(object):
 	default_num_sensors = 5
 	# FIXME: make maps from a string labels of to sensor/motor returning functions and facilities for calling these functions with any additional parameters needed
 
-	def __init__(self, sim, initpos, kind_of_light=0):
+	def __init__(self, sim, initpos, kind_of_light=0, use_rcw_gauges=False, use_fuel_gauge=False):
 		'''Creates an assembler robot at the geometrical position initpos'''
 
 		self.sim = sim
-
 		self._createBaselineAssemblerInSimulation(initpos, kind_of_light=kind_of_light)
+		if use_rcw_gauges:
+			self._addRCWGauges()
+		if use_fuel_gauge:
+			self._addFuelGauge()
 
 	def _createBaselineAssemblerInSimulation(self, initpos, kind_of_light=0):
 		x,y,z = initpos
@@ -90,6 +93,24 @@ class Assembler(object):
 		self.numMotors += 1
 		self.sensors.append((proprioceptive_sensor_id, index))
 		self.sensorLabels.append('tetherTension')
+		self.numSensors += 1
+
+	def _addRCWGauges(self):
+		rcwid, _ = self.motors[self.motorLabels.index('rcwX')]
+		gaugeid = self.sim.send_proprioceptive_sensor(joint_id=rcwid)
+		self.sensors.append((gaugeid, 0))
+		self.sensorLabels.append('rcwXgauge')
+		self.sensors.append((gaugeid, 1))
+		self.sensorLabels.append('rcwYgauge')
+		self.sensors.append((gaugeid, 2))
+		self.sensorLabels.append('rcwZgauge')
+		self.numSensors += 3
+
+	def _addFuelGauge(self):
+		thrusterid, _ = self.motors[self.motorLabels.index('thruster')]
+		gaugeid = self.sim.send_proprioceptive_sensor(joint_id=thrusterid)
+		self.sensors.append((gaugeid, 0))
+		self.sensorLabels.append('thrusterGauge')
 		self.numSensors += 1
 
 	def setController(self, controllerStr):
@@ -219,7 +240,7 @@ class AssemblerWithSwitch(Assembler):
 
 	def _addParallelSwitch(self):
 		# We need to validate the controllers first before we place our gem :)
-		numChannels = self.numSensors
+		numChannels = self.numMotors
 		numOptions = self.numBehavioralControllers
 
 		if not numOptions == len(self.behavioralControllers):
