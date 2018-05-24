@@ -48,7 +48,7 @@ class Assembler(object):
 		thruster = self.sim.send_thruster(self.body,
 		                             x=x, y=y, z=z-Assembler.body_radius,
 		                             lo=0., hi=-1.*Assembler.max_thrust,
-		                             threshold=Assembler.thrust_threshold, momentumBudget=momentum_budget)
+		                             threshold=Assembler.thrust_threshold, momentumBudget=Assembler.momentum_budget)
 		self.motors.append((thruster, 0))
 
 		rcw = self.sim.send_reaction_control_wheel(self.body,
