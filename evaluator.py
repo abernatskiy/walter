@@ -20,6 +20,8 @@ use_fuel_gauge = False
 use_switching_controllers = False
 plot_sensor_data = False
 
+_low_fitness = -10000.
+
 def createEnvironment(sim):
 	partList = []
 	partList.append(parts.Cylinder(sim, (10.,10., 3.), (-1.,0.,0.), 1))
@@ -51,6 +53,10 @@ def proximityAvg(ass0):
 def proximityMax(ass0):
 	assemblerSensorData = ass0.getSensorData()
 	return max(assemblerSensorData[0])
+
+def fuelMin(robot):
+	assemblerSensorData = robot.getSensorData()
+	return min(assemblerSensorData[8])
 
 def wasStuckToStuff(ass0):
 	assemblerSensorData = ass0.getSensorData()
@@ -85,15 +91,20 @@ def fleetProximity(myfleet):
 def fleetStuck(myfleet):
 	return sum([ wasStuckToStuff(ass) for ass in myfleet.assemblers ])
 
-def fleetFitness(robot, env):
-	if robot is None or env is None:
-		return -100000.
+def fleetFuel(myfleet):
+	return sum([ fuelMin(ass) for ass in myfleet.assemblers ])
+
+def fleetFitness(fleet, env):
+	if fleet is None or env is None:
+		return _low_fitness
+
 	pf = positioningFitness(env)
-	ill = fleetIllumination(robot)
-	prox = fleetProximity(robot)
-	stuck = fleetStuck(robot)
-	#print('pf={} ill={} prox={} stuck={}'.format(pf, ill, prox, stuck))
-	return pf + ill - prox + stuck
+	ill = fleetIllumination(fleet)
+	prox = fleetProximity(fleet)
+	stuck = fleetStuck(fleet)
+	fuel = fleetFuel(fleet)
+	#print('pf={} ill={} prox={} stuck={} fuel={}'.format(pf, ill, prox, stuck, fuel))
+	return pf + ill - prox + stuck + fuel
 
 def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
