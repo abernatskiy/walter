@@ -15,8 +15,8 @@ play_blind = True
 play_paused = False
 debug = False
 capture = False
-use_rcw_gauges = False
-use_fuel_gauge = False
+use_rcw_gauges = True
+use_fuel_gauge = True
 use_switching_controllers = False
 plot_sensor_data = False
 
