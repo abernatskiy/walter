@@ -47,7 +47,7 @@ class Assembler(object):
 
 		thruster = self.sim.send_thruster(self.body,
 		                             x=x, y=y, z=z-Assembler.body_radius,
-		                             lo=0., hi=-1.*Assembler.max_thrust,
+		                             lo=0., hi=Assembler.max_thrust,
 		                             threshold=Assembler.thrust_threshold, momentumBudget=Assembler.momentum_budget)
 		self.motors.append((thruster, 0))
 
@@ -61,7 +61,7 @@ class Assembler(object):
 		self.motors.append((sticky, 0))
 
 		self.numMotors = Assembler.default_num_motors
-		self.motorLabels = Assembler.default_motor_labels
+		self.motorLabels = copy(Assembler.default_motor_labels)
 
 		# Sensors
 		self.sensors = []
@@ -81,7 +81,7 @@ class Assembler(object):
 		self.sensors.append((stickinessSensor, 0))
 
 		self.numSensors = Assembler.default_num_sensors
-		self.sensorLabels = Assembler.default_sensor_labels
+		self.sensorLabels = copy(Assembler.default_sensor_labels)
 
 	def connectTetherToOther(self, other):
 		assert self.sim.id == other.sim.id, 'Robots must be in the same simulator to connect them with tethers'
