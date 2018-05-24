@@ -18,6 +18,7 @@ capture = False
 use_rcw_gauges = False
 use_fuel_gauge = False
 use_switching_controllers = False
+plot_sensor_data = False
 
 def createEnvironment(sim):
 	partList = []
@@ -122,6 +123,12 @@ def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_cr
 
 	sim.start()
 	sim.wait_to_finish()
+
+	if plot_sensor_data:
+		fleetSensorData = robot.getSensorData()
+		#print(fleetSensorData)
+		from tools.robotSensorAnalyzer import plot_encephalogram
+		plot_encephalogram(fleetSensorData, robot.assemblers[0].sensorLabels)
 
 	return fitness(robot, env)
 

@@ -5,6 +5,7 @@ evaluator.play_blind = False
 evaluator.play_paused = False
 evaluator.debug = True
 evaluator.capture = False
+evaluator.plot_sensor_data = True
 
 from sys import argv
 import importlib.util
