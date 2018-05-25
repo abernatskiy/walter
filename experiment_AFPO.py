@@ -17,8 +17,8 @@ numTrials = 10
 
 # Optional definitions for pbsGridWalker that depend on run execution time
 cores = 8
-pointsPerJob = 10
-maxJobs = 3
+pointsPerJob = 1
+maxJobs = 100
 queue = 'workq'
 expectedWallClockTime = '10:00:00'
 
@@ -30,7 +30,7 @@ evsDefaults = \
 'weightScale': 1.,
 'populationSize': 50,
 'genStopAfter': 5000,
-'initialPopulationType': 'random',
+'initialPopulationType': 'sparse',
 'backup': 'yes', 'backupPeriod': 100, 'trackAncestry': 'no',
 'logBestIndividual': 'yes', 'logPopulation': 'no',
 'printGeneration': 'yes', 'printPopulation': 'no', 'printParetoFront': 'yes',
