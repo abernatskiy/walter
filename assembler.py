@@ -31,6 +31,8 @@ class Assembler(object):
 		# gauge sensors are added unconditionally so that their readings could be tracked for fitness, but they are only connected to the neural network if the corresponding variables are true
 		self._addRCWGauges()
 		self._addFuelGauge()
+		self.use_rcw_gauges = use_rcw_gauges
+		self.use_fuel_gauge = use_fuel_gauge
 
 	def _createBaselineAssemblerInSimulation(self, initpos, kind_of_light=0):
 		x,y,z = initpos
@@ -134,9 +136,9 @@ class Assembler(object):
 		'''Adds sensor neurons to all sensors'''
 		sensorNeurons = []
 		for i, (sen, svi) in enumerate(self.sensors):
-			if not use_rcw_gauges and self.sensorLabels[i] in ['rcwXgauge', 'rcwYgauge', 'rcwZgauge']:
+			if not self.use_rcw_gauges and self.sensorLabels[i] in ['rcwXgauge', 'rcwYgauge', 'rcwZgauge']:
 				continue
-			if not use_fuel_gauge and self.sensorLabels[i] == 'thrusterGauge':
+			if not self.use_fuel_gauge and self.sensorLabels[i] == 'thrusterGauge':
 				continue
 			sensorNeurons.append(self.sim.send_sensor_neuron(sensor_id=sen, svi=svi))
 		return sensorNeurons
