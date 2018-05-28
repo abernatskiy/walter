@@ -22,7 +22,8 @@ for tgf in testGenomesFiles:
 	except:
 		with open(tgf, 'r') as tgff:
 			for line in tgff:
-				genomes.append(line.split(maxsplit=2)[2])
+				genomes.append(line.split(maxsplit=3)[3].rstrip())
+				print(genomes)
 
 scores = [ evaluator.evaluateController(cs, robot_adder=evaluator.addFleet, fitness=evaluator.fleetFitness, showFitnessComponents=True) for cs in genomes ]
 
