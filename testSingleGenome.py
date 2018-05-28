@@ -14,10 +14,15 @@ testGenomesFiles = argv[1:]
 genomes = []
 
 for tgf in testGenomesFiles:
-	spec = importlib.util.spec_from_file_location('module.name', tgf)
-	foo = importlib.util.module_from_spec(spec)
-	spec.loader.exec_module(foo)
-	genomes.append(foo.testGenome)
+	try:
+		spec = importlib.util.spec_from_file_location('module.name', tgf)
+		foo = importlib.util.module_from_spec(spec)
+		spec.loader.exec_module(foo)
+		genomes.append(foo.testGenome)
+	except:
+		with open(tgf, 'r') as tgff:
+			for line in tgff:
+				genomes.append(line.split(maxsplit=2)[2])
 
 scores = [ evaluator.evaluateController(cs, robot_adder=evaluator.addFleet, fitness=evaluator.fleetFitness, showFitnessComponents=True) for cs in genomes ]
 
