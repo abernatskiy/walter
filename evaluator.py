@@ -94,7 +94,7 @@ def fleetStuck(myfleet):
 def fleetFuel(myfleet):
 	return sum([ fuelMin(ass) for ass in myfleet.assemblers ])
 
-def fleetFitness(fleet, env):
+def fleetFitness(fleet, env, showFitnessComponents=False):
 	if fleet is None or env is None:
 		return _low_fitness
 
@@ -103,7 +103,8 @@ def fleetFitness(fleet, env):
 	prox = fleetProximity(fleet)
 	stuck = fleetStuck(fleet)
 	fuel = fleetFuel(fleet)
-	#print('pf={} ill={} prox={} stuck={} fuel={}'.format(pf, ill, prox, stuck, fuel))
+	if showFitnessComponents:
+		print('pf={} ill={} prox={} stuck={} fuel={}'.format(pf, ill, prox, stuck, fuel))
 	return pf + ill - prox + stuck + fuel
 
 def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment):
@@ -129,7 +130,7 @@ def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creat
 		print('Invalid simulation: {}'.format(error))
 		return sim, None, None
 
-def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment, fitness=singleRobotFitness):
+def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment, fitness=singleRobotFitness, showFitnessComponents=False):
 	sim, robot, env = setUpEvaluation(controllerStr, robot_adder=robot_adder, environment_creator=environment_creator)
 
 	sim.start()
@@ -141,7 +142,7 @@ def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_cr
 		from tools.robotSensorAnalyzer import plot_encephalogram
 		plot_encephalogram(fleetSensorData, robot.assemblers[0].sensorLabels)
 
-	return fitness(robot, env)
+	return fitness(robot, env, showFitnessComponents=showFitnessComponents)
 
 def readGenomes(inFile):
 	genomes = {}

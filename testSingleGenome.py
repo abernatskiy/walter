@@ -19,6 +19,6 @@ for tgf in testGenomesFiles:
 	spec.loader.exec_module(foo)
 	genomes.append(foo.testGenome)
 
-scores = [ evaluator.evaluateController(cs, robot_adder=evaluator.addFleet, fitness=evaluator.fleetFitness) for cs in genomes ]
+scores = [ evaluator.evaluateController(cs, robot_adder=evaluator.addFleet, fitness=evaluator.fleetFitness, showFitnessComponents=True) for cs in genomes ]
 
 print(scores)
