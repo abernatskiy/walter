@@ -109,7 +109,7 @@ def fleetFitness(fleet, env, showFitnessComponents=False):
 	if showFitnessComponents:
 		print('pf={} ill={} prox={} stuck={} fuel={}'.format(pf, ill, prox, stuck, fuel))
 
-	fc = env._fitness_coefficients
+	fc = fleet._fitness_coefficients
 	if fc is None:
 		return pf + ill - prox + stuck + fuel
 	else:
@@ -133,7 +133,7 @@ def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creat
 
 	sim.create_collision_matrix('all')
 
-	env._fitness_coefficients = fitness_coefficients
+	robot._fitness_coefficients = fitness_coefficients
 
 	valid, error = sim.is_a_valid_simulation()
 	if valid:
