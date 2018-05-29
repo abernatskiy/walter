@@ -19,6 +19,8 @@ use_rcw_gauges = True
 use_fuel_gauge = True
 use_switching_controllers = False
 plot_sensor_data = False
+evolvable_evaluation_time = False
+evolvable_fitness_coefficients = False
 
 _low_fitness = -10000.
 
@@ -103,16 +105,24 @@ def fleetFitness(fleet, env, showFitnessComponents=False):
 	prox = fleetProximity(fleet)
 	stuck = fleetStuck(fleet)
 	fuel = fleetFuel(fleet)
+
 	if showFitnessComponents:
 		print('pf={} ill={} prox={} stuck={} fuel={}'.format(pf, ill, prox, stuck, fuel))
-	return pf + ill - prox + stuck + fuel
+
+	fc = env._fitness_coefficients
+	if fc is None:
+		return pf + ill - prox + stuck + fuel
+	else:
+		return pf + fc[0]*ill - fc[1]*prox + fc[2]*stuck + fc[3]*fuel
 
 def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
 
 	genome = json.loads(controllerStr)
-	eval_time = int(seconds/dt) if type(genome) is list else int(genome['evaluationTime']/dt)
-	pureCS = controllerStr if type(genome) is list else json.dumps(genome['controller'])
+#	eval_time = int(seconds/dt) if type(genome) is list else int(genome['evaluationTime']/dt)
+	eval_time = int(seconds/dt) if not evolvable_evaluation_time else int(genome['evaluationTime']/dt)
+	fitness_coefficients = None if not evolvable_fitness_coefficients else genome['fitnessCoefficients']
+	pureCS = controllerStr if (not evolvable_evaluation_time) and (not evolvable_fitness_coefficients) else json.dumps(genome['controller'])
 
 	sim = pyrosim.Simulator(eval_time=eval_time, dt=dt, gravity=0., disable_floor=True,
 	                        debug=debug, play_blind=play_blind, play_paused=play_paused, capture=capture, use_textures=True,
@@ -122,6 +132,8 @@ def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creat
 	robot = robot_adder(sim, pureCS)
 
 	sim.create_collision_matrix('all')
+
+	env._fitness_coefficients = fitness_coefficients
 
 	valid, error = sim.is_a_valid_simulation()
 	if valid:
@@ -170,14 +182,31 @@ if __name__ == "__main__":
 	cliParser = argparse.ArgumentParser(description='Evaluator of Walter system genomes', epilog='Genomes are in JSON format. The code is the documentation ATM.')
 	cliParser.add_argument('genomesFileName', metavar='genomesFileName', type=str, help='file or pipe from which to read the genomes')
 	cliParser.add_argument('evalsFileName', metavar='evalsFileName', type=str, help='file or pipe to which to write the evaluations')
+	cliParser.add_argument('configFileName', nargs='?', metavar='configFileName', type=str, help='INI file containing the configuration')
 	cliArgs = cliParser.parse_args()
 
 	inPipe = cliArgs.genomesFileName
 	outPipe = cliArgs.evalsFileName
+	configFile = cliArgs.configFileName
 
-	fitness=fleetFitness
+	# Parsing the config
+	if not configFile is None:
+		import configparser
+		conf = configparser.RawConfigParser()
+		conf.optionxform = str # required to keep the uppercase-containing fields working
+		conf.read(configFile)
+
+		seconds = conf.getfloat('simulation', 'seconds', fallback=seconds)
+		dt = conf.getfloat('simulation', 'dt', fallback=dt)
+		use_rcw_gauges = conf.getboolean('robot', 'use_rcw_gauges', fallback=use_rcw_gauges)
+		use_fuel_gauge = conf.getboolean('robot', 'use_fuel_gauge', fallback=use_fuel_gauge)
+		use_switching_controllers = conf.getboolean('robot', 'use_fuel_gauge', fallback=use_fuel_gauge)
+		evolvable_evaluation_time = conf.getboolean('evaluation', 'evolvable_evaluation_time', fallback=evolvable_evaluation_time)
+		evolvable_fitness_coefficients = conf.getboolean('evaluation', 'evolvable_fitness_coefficients', fallback=evolvable_fitness_coefficients)
 
 	# Reading the genomes and evaluating them
+	fitness = fleetFitness
+
 	while True:
 		genomes = readGenomes(inPipe)
 		evals = {}
