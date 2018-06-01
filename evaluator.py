@@ -40,34 +40,39 @@ def addSingleRobotWithSwitch(sim, controllerStr):
 	ass0.setController(controllerStr)
 	return ass0
 
-def illuminationAvg(ass0):
-	assemblerSensorData = ass0.getSensorData()
-	return sum(assemblerSensorData[3])/len(assemblerSensorData[3])
+class TimeSeries(object):
+	def max(self):
+		return max(self.data)
+	def avg(self):
+		return sum(self.data)/len(self.data)
+	def min(self):
+		return min(self.data)
+	def any(self):
+		return 1. if any([ n!=0 for n in self.data]) else 0.
 
-def illuminationMax(ass0):
-	assemblerSensorData = ass0.getSensorData()
-	return max(assemblerSensorData[3])
+class IlluminationTS(TimeSeries):
+	threshold = -2.
+	def __init__(self, robot):
+		rid = robot.getSensorData()[3]
+		self.data = [ v-IlluminationTS.threshold if v>IlluminationTS.threshold else 0. for v in rid ]
 
-def proximityAvg(ass0):
-	assemblerSensorData = ass0.getSensorData()
-	return sum(assemblerSensorData[0])/len(assemblerSensorData[0])
+class ProximityTS(TimeSeries):
+	max_reading = 1.
+	def __init__(self, robot):
+		rpd = robot.getSensorData()[0]
+		self.data = [ ProximityTS.max_reading-v for v in rpd ]
 
-def proximityMax(ass0):
-	assemblerSensorData = ass0.getSensorData()
-	return max(assemblerSensorData[0])
+class FuelGaugeTS(TimeSeries):
+	def __init__(self, robot):
+		rfd = robot.getSensorData()[8]
+		self.data = [ 1.+v for v in rfd ]
 
-def fuelMin(robot):
-	assemblerSensorData = robot.getSensorData()
-	return min(assemblerSensorData[8])
-
-def wasStuckToStuff(ass0):
-	assemblerSensorData = ass0.getSensorData()
-	stickyTS = assemblerSensorData[4]
-	#print(stickyTS)
-	return 1. if any([ n!=0 for n in stickyTS]) else 0.
+class StucknessTS(TimeSeries):
+	def __init__(self, robot):
+		self.data = robot.getSensorData()[4]
 
 def singleRobotFitness(ass0, env):
-	return illuminationIntegral(ass0) - proximityIntegral(ass0)
+	raise NotImplementedError
 
 def addFleet(sim, controllerStr):
 	myfleet = fleet.SixFleet(sim, pos=[0,0,0], kinds_of_light=[10,20,30], use_rcw_gauges=use_rcw_gauges, use_fuel_gauge=use_fuel_gauge, use_switching_controllers=use_switching_controllers)
@@ -81,20 +86,20 @@ def positioningFitness(twoParts):
 		return sum([ (pt[0][sid][j][i] - pt[1][sid][j][i])**2 for j in range(3) ])
 	#lightSqDistances = [ [ pointDist(partsTelemetry, sid, i) for sid in range(3) ] for i in range(numPoints) ] # for integral of square distance over time
 	lightSqDistances = [ [ pointDist(partsTelemetry, sid, i) for sid in range(3) ] for i in [-1] ] # for square distance at the last moment
-	return 375. - min([ sum(dists) for dists in lightSqDistances ])
+	rawFitness = 375. - min([ sum(dists) for dists in lightSqDistances ])
+	return 0. if rawFitness<0 else rawFitness
 
 def fleetIllumination(myfleet):
-	#print([ illuminationMax(ass) for ass in myfleet.assemblers ])
-	return sum([ illuminationAvg(ass) for ass in myfleet.assemblers ])
+	return sum([ IlluminationTS(ass).avg() for ass in myfleet.assemblers ])
 
 def fleetProximity(myfleet):
-	return sum([ proximityAvg(ass) for ass in myfleet.assemblers ])
+	return sum([ ProximityTS(ass).avg() for ass in myfleet.assemblers ])
 
 def fleetStuck(myfleet):
-	return sum([ wasStuckToStuff(ass) for ass in myfleet.assemblers ])
+	return sum([ StucknessTS(ass).any() for ass in myfleet.assemblers ])
 
 def fleetFuel(myfleet):
-	return sum([ fuelMin(ass) for ass in myfleet.assemblers ])
+	return sum([ FuelGaugeTS(ass).min() for ass in myfleet.assemblers ])
 
 def fleetFitness(fleet, env, showFitnessComponents=False):
 	if fleet is None or env is None:
@@ -111,15 +116,14 @@ def fleetFitness(fleet, env, showFitnessComponents=False):
 
 	fc = fleet._fitness_coefficients
 	if fc is None:
-		return pf + ill - prox + stuck + fuel
+		return pf + ill + prox + stuck + fuel
 	else:
-		return pf + fc[0]*ill - fc[1]*prox + fc[2]*stuck + fc[3]*fuel
+		return pf + fc[0]*ill + fc[1]*prox + fc[2]*stuck + fc[3]*fuel
 
 def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
 
 	genome = json.loads(controllerStr)
-#	eval_time = int(seconds/dt) if type(genome) is list else int(genome['evaluationTime']/dt)
 	eval_time = int(seconds/dt) if not evolvable_evaluation_time else int(genome['evaluationTime']/dt)
 	fitness_coefficients = None if not evolvable_fitness_coefficients else genome['fitnessCoefficients']
 	pureCS = controllerStr if (not evolvable_evaluation_time) and (not evolvable_fitness_coefficients) else json.dumps(genome['controller'])
@@ -200,7 +204,7 @@ if __name__ == "__main__":
 		dt = conf.getfloat('simulation', 'dt', fallback=dt)
 		use_rcw_gauges = conf.getboolean('robot', 'use_rcw_gauges', fallback=use_rcw_gauges)
 		use_fuel_gauge = conf.getboolean('robot', 'use_fuel_gauge', fallback=use_fuel_gauge)
-		use_switching_controllers = conf.getboolean('robot', 'use_fuel_gauge', fallback=use_fuel_gauge)
+		use_switching_controllers = conf.getboolean('robot', 'use_switching_controllers', fallback=use_switching_controllers)
 		evolvable_evaluation_time = conf.getboolean('evaluation', 'evolvable_evaluation_time', fallback=evolvable_evaluation_time)
 		evolvable_fitness_coefficients = conf.getboolean('evaluation', 'evolvable_fitness_coefficients', fallback=evolvable_fitness_coefficients)
 
