@@ -20,7 +20,7 @@ use_fuel_gauge = True
 use_switching_controllers = False
 plot_sensor_data = False
 evolvable_evaluation_time = False
-evolvable_fitness_coefficients = False
+evolvable_fitness_coefficients = True
 
 _low_fitness = -10000.
 

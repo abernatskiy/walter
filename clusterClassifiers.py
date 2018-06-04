@@ -4,7 +4,8 @@ _indivClassParams = ['length', 'mutProbability', 'mutInsDelRatio', 'mutExplorati
                      'fleetSize', 'numSensorNeurons', 'numMotorNeurons', 'initNumBehavioralControllers', 'numHiddenNeurons',
                      'mutGoverning', 'governingMutAddBehavioralController', 'governingMutRemoveBehavioralController',
                      'governingNumHiddenNeurons', 'governingMutModifyNeuron', 'governingMutModifyConnection', 'governingMutAddRemRatio',
-                     'behavioralNumHiddenNeurons', 'behavioralMutModifyNeuron', 'behavioralMutModifyConnection', 'behavioralMutAddRemRatio', 'weightScale']
+                     'behavioralNumHiddenNeurons', 'behavioralMutModifyNeuron', 'behavioralMutModifyConnection', 'behavioralMutAddRemRatio', 'weightScale',
+                     'numFitnessParams']
 _indivClassParamsRegexp = '(' + '|'.join(_indivClassParams) + ')'
 _classSuffixRegexp = 'Class[0-9]+'
 
@@ -21,7 +22,7 @@ evsClassifier = {'classes': ['individual', 'communicator', 'evolver'],
                              'printPopulation', 'printPopulationPeriod', 'printGeneration',
                              'printGenerationPeriod', 'backup', 'backupPeriod', 'logParetoFront',
                              'logParetoFrontPeriod', 'logParetoFrontKeepAllGenerations', 'logParetoSize',
-                             'randomSeed', 'morphologyControlIndivs', 'newIndividualsPerGeneration']}
+                             'randomSeed', 'morphologyControlIndivs', 'newIndividualsPerGeneration', 'fitnessParamsUpdatePeriod', 'fitnessGroupsNumber']}
 
 evaluatorClassifier = {}
 
