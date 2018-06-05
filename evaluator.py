@@ -5,6 +5,7 @@ import pyrosim
 import assembler
 import fleet
 import parts
+import sys
 
 num_cores = 1 # doesn't really work for short simulations, and for long ones it overfills memory, but whatevs
 
@@ -162,18 +163,26 @@ def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_cr
 
 def readGenomes(inFile):
 	genomes = {}
+	#sys.stdout.write('IDs to evaluate:')
 	with open(inFile, 'r') as input:
 		for line in input:
 			# print('Read genome ' + line)
 			id, genome = line.split(' ', 1)
 			id = int(id)
 			genomes[id] = genome[:-1]
+			#sys.stdout.write(' {}'.format(id))
+	#sys.stdout.write('\n')
+	#sys.stdout.flush()
 	return genomes
 
 def writeEvals(outFile, evals):
+	#sys.stdout.write('IDs evaluated  :')
 	with open(outFile, 'w') as output:
 		for gid in sorted(evals.keys()):
 			output.write(str(gid) + ' ' + str(evals[gid]) + '\n')
+			#sys.stdout.write(' {}'.format(gid))
+	#sys.stdout.write('\n')
+	#sys.stdout.flush()
 
 def chunks(l, n):
 	'''Yield successive n-sized chunks from l'''

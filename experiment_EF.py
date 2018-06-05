@@ -13,14 +13,14 @@ import clusterClassifiers as cl
 import clusterExperiment as ce
 
 # Tunable hyperparameters
-numTrials = 1
+numTrials = 10
 
 # Optional definitions for pbsGridWalker that depend on run execution time
-cores = 8
+cores = 12
 pointsPerJob = 1
 maxJobs = 100
 queue = 'workq'
-expectedWallClockTime = '10:00:00'
+expectedWallClockTime = '20:00:00'
 
 # Constant hyperparameters
 evsDefaults = \
@@ -29,13 +29,13 @@ evsDefaults = \
 'numHiddenNeurons': 6, 'mutModifyNeuron': 0.3, 'mutModifyConnection': 0.4, 'mutAddRemRatio': 1.,
 'weightScale': 1.,
 'populationSize': 500,
-'genStopAfter': 10000,
+'genStopAfter': 1000,
 'numFitnessParams': 4,
 'fitnessParamsUpdatePeriod': 50,
 'fitnessGroupsNumber': 10,
 'initialPopulationType': 'random',
-'backup': 'yes', 'backupPeriod': 100, 'trackAncestry': 'no',
-'logBestIndividual': 'yes', 'logPopulation': 'yes',
+'backup': 'yes', 'backupPeriod': 100, 'trackAncestry': 'yes',
+'logBestIndividual': 'yes', 'logPopulation': 'yes', 'logPopulationPeriod': 100,
 'printGeneration': 'yes', 'printPopulation': 'no', 'printParetoFront': 'yes',
 'logParetoFront': 'yes', 'logParetoFrontKeepAllGenerations': 'yes', 'logParetoFrontPeriod': 10,
 'randomSeed': 42}
@@ -43,7 +43,7 @@ evsDefaults = \
 ### Required pbsGridWalker definitions
 computationName = 'evolvableFitness'
 
-nonRSGrid = gr.Grid1d('fitnessParamsUpdatePeriod', [50]) # *gr.Grid1d('initialPopulationType', ['sparse', 'random'])
+nonRSGrid = gr.Grid1d('fitnessParamsUpdatePeriod', [25,50,100]) # *gr.Grid1d('initialPopulationType', ['sparse', 'random'])
 parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
 
 for par in parametricGrid.paramNames():
