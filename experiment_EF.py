@@ -13,14 +13,14 @@ import clusterClassifiers as cl
 import clusterExperiment as ce
 
 # Tunable hyperparameters
-numTrials = 10
+numTrials = 20
 
 # Optional definitions for pbsGridWalker that depend on run execution time
 cores = 12
 pointsPerJob = 1
 maxJobs = 100
 queue = 'workq'
-expectedWallClockTime = '20:00:00'
+expectedWallClockTime = '30:00:00'
 
 # Constant hyperparameters
 evsDefaults = \
@@ -29,7 +29,7 @@ evsDefaults = \
 'numHiddenNeurons': 6, 'mutModifyNeuron': 0.3, 'mutModifyConnection': 0.4, 'mutAddRemRatio': 1.,
 'weightScale': 1.,
 'populationSize': 500,
-'genStopAfter': 1000,
+'genStopAfter': 3000,
 'numFitnessParams': 4,
 'fitnessParamsUpdatePeriod': 50,
 'fitnessGroupsNumber': 10,
