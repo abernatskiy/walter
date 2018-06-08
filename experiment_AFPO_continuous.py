@@ -24,7 +24,7 @@ expectedWallClockTime = '10:00:00'
 
 # Constant hyperparameters
 evsDefaults = \
-{ 'individual': 'ctrnnDiscreteWeightsFleetOfIdenticals', 'evolver': 'afpo', 'communicator': 'parallelUnixPipe',
+{ 'individual': 'ctrnnFleetOfIdenticals', 'evolver': 'afpo', 'communicator': 'parallelUnixPipe',
 'fleetSize': 6, 'numSensorNeurons': 10, 'numMotorNeurons': 6, 'initNumBehavioralControllers': 1,
 'numHiddenNeurons': 6, 'mutModifyNeuron': 0.3, 'mutModifyConnection': 0.4, 'mutAddRemRatio': 1.,
 'weightScale': 1.,
@@ -38,7 +38,7 @@ evsDefaults = \
 'randomSeed': 42}
 
 ### Required pbsGridWalker definitions
-computationName = 'afpo'
+computationName = 'afpo-continuous'
 
 nonRSGrid = gr.Grid1d('numHiddenNeurons', [6, 12, 18])*gr.Grid1d('initialPopulationType', ['sparse', 'random'])
 parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
