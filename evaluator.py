@@ -111,15 +111,18 @@ def fleetFitness(fleet, env, showFitnessComponents=False):
 	prox = fleetProximity(fleet)
 	stuck = fleetStuck(fleet)
 	fuel = fleetFuel(fleet)
-
 	if showFitnessComponents:
 		print('pf={} ill={} prox={} stuck={} fuel={}'.format(pf, ill, prox, stuck, fuel))
 
+	ultimateFitness = pf
+
 	fc = fleet._fitness_coefficients
 	if fc is None:
-		return pf + ill + prox + stuck + fuel
+		currentFitness = pf + ill + prox + stuck + fuel
 	else:
-		return pf + fc[0]*ill + fc[1]*prox + fc[2]*stuck + fc[3]*fuel
+		currentFitness = pf + fc[0]*ill + fc[1]*prox + fc[2]*stuck + fc[3]*fuel
+
+	return (ultimateFitness, currentFitness)
 
 def setUpEvaluation(controllerStr, robot_adder=addSingleRobot, environment_creator=createEnvironment):
 	global debug, play_blind, play_paused, camera_pos, dt, seconds
@@ -179,7 +182,7 @@ def writeEvals(outFile, evals):
 	#sys.stdout.write('IDs evaluated  :')
 	with open(outFile, 'w') as output:
 		for gid in sorted(evals.keys()):
-			output.write(str(gid) + ' ' + str(evals[gid]) + '\n')
+			output.write(str(gid) + ' ' + ' '.join(map(str, evals[gid])) + '\n')
 			#sys.stdout.write(' {}'.format(gid))
 	#sys.stdout.write('\n')
 	#sys.stdout.flush()
