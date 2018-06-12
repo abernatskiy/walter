@@ -14,7 +14,7 @@ class Assembler(object):
 	tether_force_coefficient = 5.
 	tether_dampening_coefficient = 10.
 	proximity_channels = [0,1,2] # colors (3,4,5) are not used for now
-	adhesion_kind = 0
+	adhesion_kind = 10
 
 	default_motor_labels = ['thruster', 'rcwX', 'rcwY', 'rcwZ', 'adhesive']
 	default_num_motors = 5

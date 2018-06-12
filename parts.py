@@ -13,6 +13,7 @@ class Part(ABC):
 		return None
 
 class Cylinder(Part):
+	susceptible_to_adhesion_type = 10
 	def __init__(self, sim, pos, rot, chirality, length=10., radius=2.5, mass=1000., capped=False, kinds_of_light=[10,20,30]):
 		'''Chirality can be 1 and -1'''
 		Part.__init__(self, sim)
@@ -21,6 +22,7 @@ class Cylinder(Part):
 		                                    length=length, radius=radius,
 		                                    mass=mass, capped=capped)
 		self.objects.append(cylinderID)
+		self.sim.send_adhesion_susceptibility(self.objects[-1], Cylinder.susceptible_to_adhesion_type)
 
 		for lid in range(3):
 			x = radius*math.cos(chirality*2.*math.pi*lid/3)
