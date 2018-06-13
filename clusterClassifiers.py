@@ -21,7 +21,7 @@ evsClassifier = {'classes': ['individual', 'communicator', 'evolver'],
                              'printBestIndividualPeriod', 'printParetoFront', 'printParetoFrontPeriod',
                              'printPopulation', 'printPopulationPeriod', 'printGeneration',
                              'printGenerationPeriod', 'backup', 'backupPeriod', 'logParetoFront',
-                             'logParetoFrontPeriod', 'logParetoFrontKeepAllGenerations', 'logParetoSize',
+                             'logParetoFrontPeriod', 'logParetoFrontKeepAllGenerations', 'logParetoSize', 'lineageInjectionPeriod',
                              'randomSeed', 'morphologyControlIndivs', 'newIndividualsPerGeneration', 'fitnessParamsUpdatePeriod', 'fitnessGroupsNumber']}
 
 evaluatorClassifier = {}
