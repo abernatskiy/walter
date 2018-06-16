@@ -13,7 +13,7 @@ import clusterClassifiers as cl
 import clusterExperiment as ce
 
 # Tunable hyperparameters
-numTrials = 1
+numTrials = 10
 
 # Optional definitions for pbsGridWalker that depend on run execution time
 cores = 12
@@ -40,9 +40,9 @@ evsDefaults = \
 'randomSeed': 42}
 
 ### Required pbsGridWalker definitions
-computationName = 'evolvableFitness'
+computationName = 'ageFitness'
 
-nonRSGrid = gr.Grid1d('lineageInjectionPeriod', [50])
+nonRSGrid = gr.Grid1d('lineageInjectionPeriod', [25, 50, 100])
 parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
 
 for par in parametricGrid.paramNames():

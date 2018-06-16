@@ -23,7 +23,7 @@ plot_sensor_data = False
 evolvable_evaluation_time = False
 evolvable_fitness_coefficients = True
 
-_low_fitness = -10000.
+_low_fitness = -1.0 # equal to epsilons, so that probability is exactly zero
 
 def createEnvironment(sim):
 	partList = []
@@ -239,12 +239,19 @@ if __name__ == "__main__":
 				sim.start()
 #			print('simulations started')
 
-			for sim, _, _ in materialsChunk:
-				sim.wait_to_finish()
+			for gid, (sim, _, _) in zip(gidChunk, materialsChunk):
+				try:
+					sim.wait_to_finish()
+				except RuntimeError:
+					with open('offending_genome', 'a') as ogf:
+						ogf.write(genomes[gid])
+					print('Simulation caught a runtime error. Offending genome is at offending_genome file')
+					evals[gid] = (_low_fitness, _low_fitness)
 #			print('simulations done')
 
 			for gid, (_, robot, env) in zip(gidChunk, materialsChunk):
-				evals[gid] = fitness(robot, env)
+				if not gid in evals.keys():
+					evals[gid] = fitness(robot, env)
 #			print('fitness recorded')
 
 		if capture:
