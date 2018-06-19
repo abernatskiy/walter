@@ -1,11 +1,10 @@
 #!/usr/bin/python3
 
-import json
+import sys, glob, os, json, time
 import pyrosim
 import assembler
 import fleet
 import parts
-import sys
 
 num_cores = 1 # doesn't really work for short simulations, and for long ones it overfills memory, but whatevs
 
@@ -24,6 +23,8 @@ evolvable_evaluation_time = False
 evolvable_fitness_coefficients = True
 
 _low_fitness = -1.0 # equal to epsilons, so that probability is exactly zero
+
+_system_wait = 0.1 # time given to the system to generate a core dump for a crashed simulation
 
 def createEnvironment(sim):
 	partList = []
@@ -244,9 +245,19 @@ if __name__ == "__main__":
 					sim.wait_to_finish()
 				except RuntimeError:
 					with open('offending_genome', 'a') as ogf:
-						ogf.write(genomes[gid])
-					print('Simulation caught a runtime error. Offending genome is at offending_genome file')
+						ogf.write(genomes[gid] + '\n')
 					evals[gid] = (_low_fitness, _low_fitness)
+					print('Simulation caught a runtime error. Offending genome {} is written offending_genome file'.format(gid))
+
+					time.sleep(_system_wait)
+					coredumps = glob.glob('core.*')
+					for cd in coredumps:
+						try:
+							os.remove(cd)
+						except OSError:
+							pass
+						print('Attempted removal of the following core dump file: {}'.format(cd))
+
 #			print('simulations done')
 
 			for gid, (_, robot, env) in zip(gidChunk, materialsChunk):
