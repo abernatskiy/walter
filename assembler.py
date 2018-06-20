@@ -11,7 +11,7 @@ class Assembler(object):
 	thrust_threshold = -0.8
 	momentum_budget = 10.
 	max_torque = 0.1
-	tether_force_coefficient = 5.
+	tether_force_coefficient = 50.
 	tether_dampening_coefficient = 10.
 	proximity_channels = [0,1,2] # colors (3,4,5) are not used for now
 	adhesion_kind = 10
