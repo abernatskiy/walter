@@ -21,6 +21,7 @@ use_switching_controllers = False
 plot_sensor_data = False
 evolvable_evaluation_time = False
 evolvable_fitness_coefficients = True
+collision_threshold = 10.0
 
 _low_fitness = -1.0 # equal to epsilons, so that probability is exactly zero
 
@@ -30,6 +31,7 @@ def createEnvironment(sim):
 	partList = []
 	partList.append(parts.Cylinder(sim, (10.,10., 3.), (-1.,0.,0.), 1))
 	partList.append(parts.Cylinder(sim, (-10.,10., 3.), (1.,0.,0.), -1))
+	partList.append((sim, sim.send_global_collision_sensor(1.0, logarithmic=False)))
 	return partList
 
 def addSingleRobot(sim, controllerStr):
@@ -51,6 +53,12 @@ class TimeSeries(object):
 		return min(self.data)
 	def any(self):
 		return 1. if any([ n!=0 for n in self.data]) else 0.
+	def __str__(self):
+		return ' '.join(map(str, self.data))
+	def showPlot(self):
+		import matplotlib.pyplot as plt
+		plt.plot(self.data)
+		plt.show()
 
 class IlluminationTS(TimeSeries):
 	threshold = -2.
@@ -73,15 +81,21 @@ class StucknessTS(TimeSeries):
 	def __init__(self, robot):
 		self.data = robot.getSensorData()[4]
 
-def singleRobotFitness(ass0, env):
-	raise NotImplementedError
+class MaxCollisionSpeedTS(TimeSeries):
+	def __init__(self, environment):
+		sim, sensid = environment[2]
+		self.data = sim.get_sensor_data(sensid)
 
 def addFleet(sim, controllerStr):
 	myfleet = fleet.SixFleet(sim, pos=[0,0,0], kinds_of_light=[10,20,30], use_rcw_gauges=use_rcw_gauges, use_fuel_gauge=use_fuel_gauge, use_switching_controllers=use_switching_controllers)
 	myfleet.setController(controllerStr)
 	return myfleet
 
-def positioningFitness(twoParts):
+def singleRobotFitness():
+	raise NotImplementedError
+
+def positioningFitness(env):
+	twoParts = env[0:2]
 	partsTelemetry = [ part.getPartTelemetry() for part in twoParts ]
 	numPoints = len(partsTelemetry[0][0][0])
 	def pointDist(pt, sid, i):
@@ -89,7 +103,12 @@ def positioningFitness(twoParts):
 	#lightSqDistances = [ [ pointDist(partsTelemetry, sid, i) for sid in range(3) ] for i in range(numPoints) ] # for integral of square distance over time
 	lightSqDistances = [ [ pointDist(partsTelemetry, sid, i) for sid in range(3) ] for i in [-1] ] # for square distance at the last moment
 	rawFitness = 375. - min([ sum(dists) for dists in lightSqDistances ])
-	return 0. if rawFitness<0 else rawFitness
+	return 0. if rawFitness<0. else rawFitness
+
+def collisionFitness(env):
+	collisionSpeedTS = MaxCollisionSpeedTS(env)
+	worstCollisionSpeed = collisionSpeedTS.max()
+	return (collision_threshold - worstCollisionSpeed)/collision_threshold if worstCollisionSpeed<collision_threshold else 0.
 
 def fleetIllumination(myfleet):
 	return sum([ IlluminationTS(ass).avg() for ass in myfleet.assemblers ])
@@ -112,16 +131,17 @@ def fleetFitness(fleet, env, showFitnessComponents=False):
 	prox = fleetProximity(fleet)
 	stuck = fleetStuck(fleet)
 	fuel = fleetFuel(fleet)
+	coll = collisionFitness(env)
 	if showFitnessComponents:
-		print('pf={} ill={} prox={} stuck={} fuel={}'.format(pf, ill, prox, stuck, fuel))
+		print('pf={} ill={} prox={} stuck={} fuel={} coll={}'.format(pf, ill, prox, stuck, fuel, coll))
 
-	ultimateFitness = pf
+	ultimateFitness = pf if coll>0. else 0. # ultimately, we want our parts to be as close as possible, but not broken
 
 	fc = fleet._fitness_coefficients
 	if fc is None:
-		currentFitness = pf + ill + prox + stuck + fuel
+		currentFitness = pf + ill + prox + stuck + fuel + coll
 	else:
-		currentFitness = pf + fc[0]*ill + fc[1]*prox + fc[2]*stuck + fc[3]*fuel
+		currentFitness = pf + fc[0]*ill + fc[1]*prox + fc[2]*stuck + fc[3]*fuel + fc[4]*coll
 
 	return (ultimateFitness, currentFitness)
 
@@ -162,6 +182,9 @@ def evaluateController(controllerStr, robot_adder=addSingleRobot, environment_cr
 		#print(fleetSensorData)
 		from tools.robotSensorAnalyzer import plot_encephalogram
 		plot_encephalogram(fleetSensorData, robot.assemblers[0].sensorLabels)
+
+		collisionSpeedTS = MaxCollisionSpeedTS(env)
+		collisionSpeedTS.showPlot()
 
 	return fitness(robot, env, showFitnessComponents=showFitnessComponents)
 

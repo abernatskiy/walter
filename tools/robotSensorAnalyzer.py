@@ -7,7 +7,7 @@ def plot_encephalogram(sensorData, slabels):
 
 	for axid in range(nrobots):
 		for ts in sensorData[axid]:
-			axes[axid].plot(ts)
+			axes[axid].plot(ts, alpha=0.8)
 			if axid == nrobots-1:
 				axes[axid].legend(slabels)
 

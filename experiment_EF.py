@@ -30,7 +30,7 @@ evsDefaults = \
 'weightScale': 1.,
 'populationSize': 500,
 'genStopAfter': 3000,
-'numFitnessParams': 4,
+'numFitnessParams': 5,
 'fitnessParamsUpdatePeriod': 50,
 'fitnessGroupsNumber': 10,
 'initialPopulationType': 'random',

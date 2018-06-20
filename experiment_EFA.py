@@ -31,7 +31,7 @@ evsDefaults = \
 'populationSize': 100,
 'lineageInjectionPeriod': 50,
 'genStopAfter': 3000,
-'numFitnessParams': 4,
+'numFitnessParams': 5,
 'initialPopulationType': 'random',
 'backup': 'yes', 'backupPeriod': 100, 'trackAncestry': 'yes',
 'logBestIndividual': 'yes', 'logPopulation': 'yes', 'logPopulationPeriod': 100,
