@@ -18,9 +18,9 @@ numTrials = 10
 # Optional definitions for pbsGridWalker that depend on run execution time
 cores = 12
 pointsPerJob = 1
-maxJobs = 100
+maxJobs = 200
 queue = 'workq'
-expectedWallClockTime = '30:00:00'
+expectedWallClockTime = '15:00:00'
 
 # Constant hyperparameters
 evsDefaults = \
@@ -29,7 +29,7 @@ evsDefaults = \
 'numHiddenNeurons': 6, 'mutModifyNeuron': 0.3, 'mutModifyConnection': 0.4, 'mutAddRemRatio': 1.,
 'weightScale': 1.,
 'populationSize': 100,
-'lineageInjectionPeriod': 50,
+'lineageInjectionPeriod': 50, 'mutatedLineagesFraction': 0.,
 'genStopAfter': 3000,
 'numFitnessParams': 5,
 'initialPopulationType': 'random',
@@ -42,7 +42,9 @@ evsDefaults = \
 ### Required pbsGridWalker definitions
 computationName = 'ageFitness'
 
-nonRSGrid = gr.Grid1d('lineageInjectionPeriod', [25, 50, 100])
+nonRSGrid = gr.Grid1d('evolver', ['ageFunction', 'ageFunctionSparsityBiased'])*
+            gr.Grid1d('mutatedLineagesFraction', [0., 1.])*
+            gr.Grid1d('lineageInjectionPeriod', [25, 50, 100])
 parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
 
 for par in parametricGrid.paramNames():
