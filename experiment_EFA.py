@@ -43,8 +43,8 @@ evsDefaults = \
 computationName = 'ageFitness'
 
 nonRSGrid = gr.Grid1d('evolver', ['ageFunction', 'ageFunctionSparsityBiased'])*
-            gr.Grid1d('mutatedLineagesFraction', [0., 1.])*
-            gr.Grid1d('lineageInjectionPeriod', [25, 50, 100])
+            gr.Grid1d('mutatedLineagesFraction', [0., 0.5])*
+            gr.Grid1d('initialPopulationType', ['random', 'sparse'])
 parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
 
 for par in parametricGrid.paramNames():
