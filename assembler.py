@@ -233,30 +233,26 @@ class AssemblerWithSwitch(Assembler):
 
 	def _addGoverningController(self, gcparams):
 		controller = {}
-		controller['numHiddenNeurons'] = gcparams['numHiddenNeurons']
-
-		controller['hiddenNeurons'] = self._addHiddenNeurons(gcparams['hiddenNeuronsParams'])
-		controller['governingNeurons'] = self._addHiddenNeurons(gcparams['governingNeuronsParams'], addBias=False)
-
-		synParams = gcparams['synapsesParams']
-		controller['synapses'] = {}
-		controller['synapses']['sensorToHidden']     = self._wireALayer(self.sensorNeurons,          controller['hiddenNeurons'],    synParams['sensorToHidden'])
-		controller['synapses']['trueMotorToHidden']  = self._wireALayer(self.trueMotorNeurons,       controller['hiddenNeurons'],    synParams['trueMotorToHidden'])
-		controller['synapses']['hiddenToHidden']     = self._wireALayer(controller['hiddenNeurons'], controller['hiddenNeurons'],    synParams['hiddenToHidden'])
-		controller['synapses']['hiddenToGoverning' ] = self._wireALayer(controller['hiddenNeurons'], controller['governingNeurons'], synParams['hiddenToGoverning'] )
-
+		controller['numInstances'] = gcparams['numInstances']
+		controller['numControls'] = gcparams['numControls']
+		controller['instances'] = { tuple(inst): contidx for inst, contidx in zip(gcparams['instances'], gcparams['controllers']) }
+		controller['controls'] = self.sensorNeurons # no hidden state is taken into account when changing controllers
 		return controller
 
 	def _addParallelSwitch(self):
 		# We need to validate the controllers first before we place our gem :)
 		numChannels = self.numMotors
 		numOptions = self.numBehavioralControllers
+		numControls = self.governingController['numControls']
 
 		if not numOptions == len(self.behavioralControllers):
 			raise ValueError('Declared number of behavioral controllers ({}) is different from the number of controllers supplied ({}). Cannot add parallel switch.'.format(numOptions, len(self.behavioralControllers)))
 		for i,bc in enumerate(self.behavioralControllers):
 			if not len(bc['motorNeurons']) == numChannels:
 				raise ValueError('Number of outputs of {}th behavioral controller ({}) is different from the number of motors ({}). Cannot add parallel switch.'.format(i, len(bc['motorNeurons']),numChannels))
+		for inst,idx in self.governingController['instances']:
+			if not len(inst) == numControls:
+				raise ValueError('Instance vector length mismatch for instance {} (maps to {}): length should {}'.format(inst, idx, numControls))
 
 		self.parallelSwitch = {}
 
@@ -264,10 +260,11 @@ class AssemblerWithSwitch(Assembler):
 		for bc in self.behavioralControllers:
 			psinputs.append(bc['motorNeurons'])
 
-		if numOptions == 1:
-			psoutputs = copy(psinputs[0])
-		else:
-			psoutputs = self.sim.send_parallel_switch(numChannels, numOptions, psinputs, self.governingController['governingNeurons'])
+		numInstances = self.governingController['numInstances']
+
+		psoutputs = self.sim.send_instance_based_parallel_switch(numChannels, numOptions, numControls, \
+		                                                         psinputs, self.governingController['controls'], \
+		                                                         self.governingController['instances'] )
 
 		pssynapses = []
 		for i,out in enumerate(psoutputs):
