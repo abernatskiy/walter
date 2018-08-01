@@ -13,12 +13,12 @@ import clusterClassifiers as cl
 import clusterExperiment as ce
 
 # Tunable hyperparameters
-numTrials = 10
+numTrials = 100
 
 # Optional definitions for pbsGridWalker that depend on run execution time
 cores = 12
 pointsPerJob = 1
-maxJobs = 200
+maxJobs = 800
 queue = 'workq'
 expectedWallClockTime = '15:00:00'
 
@@ -42,10 +42,30 @@ evsDefaults = \
 ### Required pbsGridWalker definitions
 computationName = 'ageFitness'
 
-nonRSGrid = (gr.Grid1d('evolver', ['ageFunction', 'ageFunctionSparsityBiased'])*
-             gr.Grid1d('mutatedLineagesFraction', [0., 0.5])*
-             gr.Grid1d('initialPopulationType', ['random', 'sparse'])
+nonRSGrid = (
+             (
+              gr.Grid1d('lineageInjectionPeriod', [30000])*
+              gr.Grid1d('mutatedLineagesFraction', [0.])*
+              gr.Grid1d('initialPopulationType', ['random'])*
+              gr.Grid1d('evolver', ['ageFunction'])*
+              gr.Grid1d('individual', ['ctrnnDiscreteWeightsFleetOfIdenticalsFixedFitness', 'ctrnnDiscreteWeightsFleetOfIdenticalsEvolvableFitness'])
+             ).concatenate(
+
+              gr.Grid1d('individual', ['ctrnnDiscreteWeightsFleetOfIdenticalsEvolvableFitness'])*
+              gr.Grid1d('lineageInjectionPeriod', [50])*
+              (
+               gr.Grid1d('mutatedLineagesFraction', [0.5])*
+               gr.Grid1d('initialPopulationType', ['random'])*
+               gr.Grid1d('evolver', ['ageFunction'])).concatenate(
+
+               gr.Grid1d('mutatedLineagesFraction', [0.])*
+               gr.Grid1d('initialPopulationType', ['sparse', 'random'])*
+               gr.Grid1d('evolver', ['ageFunction', 'ageFunctionSparsityBiased'])
+              )
+
+             )
             )
+
 parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
 
 for par in parametricGrid.paramNames():
