@@ -7,6 +7,7 @@ evaluator.debug = True
 evaluator.capture = False
 evaluator.plot_sensor_data = True
 evaluator.evolvable_fitness_coefficients = True
+# evaluator.use_switching_controllers = True
 
 from sys import argv
 import importlib.util

@@ -234,9 +234,9 @@ class AssemblerWithSwitch(Assembler):
 	def _addGoverningController(self, gcparams):
 		controller = {}
 		controller['numInstances'] = gcparams['numInstances']
-		controller['numControls'] = gcparams['numControls']
 		controller['instances'] = { tuple(inst): contidx for inst, contidx in zip(gcparams['instances'], gcparams['controllers']) }
-		controller['controls'] = self.sensorNeurons # no hidden state is taken into account when changing controllers
+		controller['numControls'] = self.numSensors
+		controller['controls'] = self.sensorNeurons # no hidden state is taken into account when changing controllers, everything is through sensors
 		return controller
 
 	def _addParallelSwitch(self):
@@ -250,9 +250,11 @@ class AssemblerWithSwitch(Assembler):
 		for i,bc in enumerate(self.behavioralControllers):
 			if not len(bc['motorNeurons']) == numChannels:
 				raise ValueError('Number of outputs of {}th behavioral controller ({}) is different from the number of motors ({}). Cannot add parallel switch.'.format(i, len(bc['motorNeurons']),numChannels))
-		for inst,idx in self.governingController['instances']:
+		# print("I have {} sensors: {}".format(self.numSensors, self.sensorLabels))
+
+		for inst,idx in self.governingController['instances'].items():
 			if not len(inst) == numControls:
-				raise ValueError('Instance vector length mismatch for instance {} (maps to {}): length should {}'.format(inst, idx, numControls))
+				raise ValueError('Instance vector length mismatch for instance {} (maps to {}): length should be {}'.format(inst, idx, numControls))
 
 		self.parallelSwitch = {}
 
@@ -262,7 +264,7 @@ class AssemblerWithSwitch(Assembler):
 
 		numInstances = self.governingController['numInstances']
 
-		psoutputs = self.sim.send_instance_based_parallel_switch(numChannels, numOptions, numControls, \
+		psid, psoutputs = self.sim.send_instance_based_parallel_switch(numChannels, numOptions, numControls, \
 		                                                         psinputs, self.governingController['controls'], \
 		                                                         self.governingController['instances'] )
 
@@ -270,5 +272,11 @@ class AssemblerWithSwitch(Assembler):
 		for i,out in enumerate(psoutputs):
 			pssynapses.append(self.sim.send_synapse(out, self.trueMotorNeurons[i], 1.0))
 
+		self.parallelSwitch['id'] = psid
 		self.parallelSwitch['outputs'] = psoutputs
 		self.parallelSwitch['synapses'] = pssynapses
+
+		self.ccsen = self.sim.send_current_controller_sensor(psid)
+
+	def getControllerSwitchingData(self):
+		return self.sim.get_sensor_data(self.ccsen)
