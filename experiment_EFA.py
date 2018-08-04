@@ -117,52 +117,53 @@ def processResults(experiment):
 		subprocess.call('echo >> ../results/' + outFile, shell=True)
 
 #	experiment.executeAtEveryGridPointDir(columnExtractor)
-	return
 
-	os.chdir('results')
-	xlabel = 'Generations'
-	ylimit = None
-	yscale = 'lin'
-	xscale = 'lin'
-	margins = 0.5
-	xlimit = None
-	alpha = 0.3
-	title = None
 
-	def robustLoadTxt(ffn):
-		arr0 = []
-		with open(ffn, 'r') as ff:
-			for line in ff:
-				vals = map(float, line.split())
-				arr0.append(vals)
-		minlen = min([ len(vs) for vs in arr0 ])
-		arr1 = []
-		for vs in arr0:
-			arr1.append(vs[:minlen])
-		arr1 = np.array(arr1)
-		return arr1
+	def plotAll():
+		os.chdir('results')
+		xlabel = 'Generations'
+		ylimit = None
+		yscale = 'lin'
+		xscale = 'lin'
+		margins = 0.5
+		xlimit = 3000
+		alpha = 0.3
+		title = None
+#		figsize = (2.5,4)
+		figsize = None
+		striptype = 'conf95'
 
-#	dataDict = { str(mg): np.loadtxt(fitnessFileName(mg)) for mg in [0.1, 0.3, 0.5, 0.7, 0.9] }
-#	dataDict = { str(mg): robustLoadTxt(fitnessFileName(mg)) for mg in [0.1, 0.3, 0.5, 0.7, 0.9] }
+		filenames = [ 'gid{}'.format(x) for x in range(1,8) ]
+		dataDict = { fn: np.loadtxt(fn) for fn in filenames }
 
-#	tplt.plotAverageTimeSeries(dataDict, 'Error', 'mg.png',
-#	                           title=title, legendLocation=None, xlabel=xlabel,
-#	                           xlimit=xlimit, ylimit=ylimit, figsize=(2.5,4), xscale=xscale, yscale=yscale, margins=margins)
+		comp1 = { tsn: dataDict[fn] for tsn,fn in {'manual scaffolding': 'gid1', 'random scaffolding': 'gid2', 'evolvable scaffolding': 'gid3'}.items() }
+		comp2 = { tsn: dataDict[fn] for tsn,fn in {'no bias (RIP)': 'gid3', 'RIP+CC': 'gid4', 'SIP+CC': 'gid5', 'SIP only': 'gid6'}.items() }
+		comp3 = { tsn: dataDict[fn] for tsn,fn in {'no scaffolding mutation': 'gid3', 'mutatable scaffolding': 'gid7'}.items() }
 
-	for mgg in [0.1, 0.3, 0.5, 0.7, 0.9]:
-		dataDict = { str(mg): robustLoadTxt(fitnessFileName(mg)) for mg in [mgg] }
+		comparisons = { 'comp1': comp1, 'comp2': comp2, 'comp3': comp3 }
 
-		tplt.plotAllTimeSeries(dataDict, 'Error', 'mgall' + str(mgg) + '.png',
-		                           title=title, legendLocation=1, xlabel=xlabel,
-	  	                         xlimit=xlimit, ylimit=ylimit, xscale=xscale, yscale=yscale, margins=margins, alpha=alpha)
+		for e,d in comparisons.items():
+			tplt.plotAverageTimeSeries(d, 'Fitness', e + '-avg.png',
+			                           title=title, legendLocation=4, xlabel=xlabel,
+			                           xlimit=xlimit, ylimit=ylimit, figsize=figsize, xscale=xscale, yscale=yscale, margins=margins, strips=striptype)
+			tplt.plotAllTimeSeries(d, 'Fitness', e + '-all.png', alpha=alpha,
+			                       title=title, legendLocation=4, xlabel=xlabel,
+			                       xlimit=xlimit, ylimit=ylimit, figsize=figsize, xscale=xscale, yscale=yscale, margins=margins)
 
-#	def plotAllTSForInitalPopulationType(initPopType):
-#		title = None
-#		dataDict = {attachments[x]: -1.*np.loadtxt(fitnessFileName(x, initPopType)) for x in attachments.keys()}
-#		tplt.plotAverageTimeSeries(dataDict, 'Error', 'errorComparison_GENS50_IP' + initPopType + '.png', title=title, legendLocation=None, xlabel=xlabel, xlimit=50, ylimit=ylimit, figsize=(2.5,4), xscale=xscale, yscale=yscale, margins=margins)
-#		tplt.plotAllTimeSeries(dataDict, 'Error', 'errorAllTrajectories_GEN50_IP' + initPopType + '.png', title=title, legendLocation=None, xlabel=xlabel, xlimit=50, ylimit=ylimit, figsize=(2.5,4), xscale=xscale, yscale=yscale, margins=margins, alpha=alpha)
-#		tplt.plotAverageTimeSeries(dataDict, 'Error', 'errorComparison_IP' + initPopType + '.png', title=title, legendLocation=1, xlabel=xlabel, xlimit=500, ylimit=ylimit, xscale=xscale, yscale=yscale, margins=margins)
-#		tplt.plotAllTimeSeries(dataDict, 'Error', 'errorAllTrajectories_IP' + initPopType + '.png', title=title, legendLocation=1, xlabel=xlabel, xlimit=500, ylimit=ylimit, xscale=xscale, yscale=yscale, margins=margins, alpha=alpha)
-#	for ip in initialPopulationTypes:
-#		plotAllTSForNew(ip)
-	os.chdir('..')
+		os.chdir('..')
+
+	plotAll()
+
+#	def robustLoadTxt(ffn):
+#		arr0 = []
+#		with open(ffn, 'r') as ff:
+#			for line in ff:
+#				vals = map(float, line.split())
+#				arr0.append(vals)
+#		minlen = min([ len(vs) for vs in arr0 ])
+#		arr1 = []
+#		for vs in arr0:
+#			arr1.append(vs[:minlen])
+#		arr1 = np.array(arr1)
+#		return arr1
+
