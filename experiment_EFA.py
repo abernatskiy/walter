@@ -97,7 +97,7 @@ def processResults(experiment):
 			elif paramsDict['individual'] == 'ctrnnDiscreteWeightsFleetOfIdenticalsEvolvableFitness':
 				gid = '2'
 		elif paramsDict['lineageInjectionPeriod'] == 50:
-			if paramsDict['mutatedLineagesFraction'] == 0.:
+			if paramsDict['mutatedLineagesRatio'] == 0.:
 				if paramsDict['evolver'] == 'ageFunction':
 					if paramsDict['initialPopulationType'] == 'random':
 						gid = '3'
