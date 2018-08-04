@@ -61,7 +61,7 @@ nonRSGrid = (
                gr.Grid1d('lineageMutationType', ['individualClassDefault', 'randomJump'])
               ).concatenate(
 
-               gr.Grid1d('mutatedLineagesFraction', [0.])*
+               gr.Grid1d('mutatedLineagesRatio', [0.])*
                gr.Grid1d('lineageMutationType', ['individualClassDefault'])*
                gr.Grid1d('initialPopulationType', ['sparse', 'random'])*
                gr.Grid1d('evolver', ['ageFunction', 'ageFunctionSparsityBiased'])
