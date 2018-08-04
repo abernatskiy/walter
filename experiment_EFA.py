@@ -13,14 +13,14 @@ import clusterClassifiers as cl
 import clusterExperiment as ce
 
 # Tunable hyperparameters
-numTrials = 100
+numTrials = 50
 
 # Optional definitions for pbsGridWalker that depend on run execution time
 cores = 12
 pointsPerJob = 1
 maxJobs = 800
 queue = 'workq'
-expectedWallClockTime = '15:00:00'
+expectedWallClockTime = '30:00:00'
 
 # Constant hyperparameters
 evsDefaults = \
@@ -29,8 +29,8 @@ evsDefaults = \
 'numHiddenNeurons': 6, 'mutModifyNeuron': 0.3, 'mutModifyConnection': 0.4, 'mutAddRemRatio': 1.,
 'weightScale': 1.,
 'populationSize': 100,
-'lineageInjectionPeriod': 50, 'mutatedLineagesFraction': 0.,
-'genStopAfter': 3000,
+'lineageInjectionPeriod': 50, 'mutatedLineagesRatio': 0., 'lineageMutationType': 'individualClassDefault',
+'genStopAfter': 6000,
 'numFitnessParams': 5,
 'initialPopulationType': 'random',
 'backup': 'yes', 'backupPeriod': 100, 'trackAncestry': 'yes',
@@ -40,25 +40,29 @@ evsDefaults = \
 'randomSeed': 42}
 
 ### Required pbsGridWalker definitions
-computationName = 'ageFitness'
+computationName = 'ageFunction'
 
 nonRSGrid = (
              (
               gr.Grid1d('lineageInjectionPeriod', [30000])*
-              gr.Grid1d('mutatedLineagesFraction', [0.])*
+              gr.Grid1d('mutatedLineagesRatio', [0.])*
               gr.Grid1d('initialPopulationType', ['random'])*
               gr.Grid1d('evolver', ['ageFunction'])*
+              gr.Grid1d('lineageMutationType', ['individualClassDefault'])*
               gr.Grid1d('individual', ['ctrnnDiscreteWeightsFleetOfIdenticalsFixedFitness', 'ctrnnDiscreteWeightsFleetOfIdenticalsEvolvableFitness'])
              ).concatenate(
 
               gr.Grid1d('individual', ['ctrnnDiscreteWeightsFleetOfIdenticalsEvolvableFitness'])*
               gr.Grid1d('lineageInjectionPeriod', [50])*
               (
-               gr.Grid1d('mutatedLineagesFraction', [0.5])*
+               gr.Grid1d('mutatedLineagesRatio', [1.0])*
                gr.Grid1d('initialPopulationType', ['random'])*
-               gr.Grid1d('evolver', ['ageFunction'])).concatenate(
+               gr.Grid1d('evolver', ['ageFunction'])*
+               gr.Grid1d('lineageMutationType', ['individualClassDefault', 'randomJump'])
+              ).concatenate(
 
                gr.Grid1d('mutatedLineagesFraction', [0.])*
+               gr.Grid1d('lineageMutationType', ['individualClassDefault'])*
                gr.Grid1d('initialPopulationType', ['sparse', 'random'])*
                gr.Grid1d('evolver', ['ageFunction', 'ageFunctionSparsityBiased'])
               )
@@ -83,7 +87,7 @@ def processResults(experiment):
 	import numpy as np
 	import pbsGridWalker.tools.plotutils as tplt
 
-#	tfs.makeDirCarefully('results', maxBackups=100)
+	tfs.makeDirCarefully('results', maxBackups=100)
 
 	def fitnessFileName(paramsDict):
 		gid = 'NOGID'
@@ -104,8 +108,11 @@ def processResults(experiment):
 						gid = '4'
 					elif paramsDict['initialPopulationType'] == 'sparse':
 						gid = '5'
-			elif paramsDict['mutatedLineagesFraction'] == 0.5:
-				gid = '7'
+			elif paramsDict['mutatedLineagesRatio'] == 1.0:
+				if paramsDict['lineageMutationType'] == 'individualClassDefault':
+					gid = '7'
+				elif paramsDict['lineageMutationType'] == 'randomJump':
+					gid = '8'
 		if gid == 'NOGID':
 			raise ValueError('Unclassified parameter dictionary {}'.format(paramsDict))
 		return 'gid{}'.format(gid)
@@ -116,8 +123,7 @@ def processResults(experiment):
 		subprocess.call('cut -d \' \' -f 2 bestIndividual*.log | tail -n +4 | tr \'\n\' \' \' >> ../results/' + outFile, shell=True)
 		subprocess.call('echo >> ../results/' + outFile, shell=True)
 
-#	experiment.executeAtEveryGridPointDir(columnExtractor)
-
+	experiment.executeAtEveryGridPointDir(columnExtractor)
 
 	def plotAll():
 		os.chdir('results')
@@ -133,12 +139,12 @@ def processResults(experiment):
 		figsize = None
 		striptype = 'conf95'
 
-		filenames = [ 'gid{}'.format(x) for x in range(1,8) ]
+		filenames = [ 'gid{}'.format(x) for x in range(1,9) ]
 		dataDict = { fn: np.loadtxt(fn) for fn in filenames }
 
 		comp1 = { tsn: dataDict[fn] for tsn,fn in {'manual scaffolding': 'gid1', 'random scaffolding': 'gid2', 'evolvable scaffolding': 'gid3'}.items() }
 		comp2 = { tsn: dataDict[fn] for tsn,fn in {'no bias (RIP)': 'gid3', 'RIP+CC': 'gid4', 'SIP+CC': 'gid5', 'SIP only': 'gid6'}.items() }
-		comp3 = { tsn: dataDict[fn] for tsn,fn in {'no scaffolding mutation': 'gid3', 'mutatable scaffolding': 'gid7'}.items() }
+		comp3 = { tsn: dataDict[fn] for tsn,fn in {'no turning': 'gid3', 'smooth turning': 'gid7', 'abrupt turning': 'gid8'}.items() }
 
 		comparisons = { 'comp1': comp1, 'comp2': comp2, 'comp3': comp3 }
 
@@ -166,4 +172,3 @@ def processResults(experiment):
 #			arr1.append(vs[:minlen])
 #		arr1 = np.array(arr1)
 #		return arr1
-
