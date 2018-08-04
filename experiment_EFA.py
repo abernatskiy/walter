@@ -78,19 +78,47 @@ def runComputationAtPoint(worker, params):
 	return ce.runComputationAtPoint(worker, params, evsDefaults, parallelClients=cores)
 
 def processResults(experiment):
-	return
 	import os
 	import shutil
 	import numpy as np
 	import pbsGridWalker.tools.plotutils as tplt
+
 #	tfs.makeDirCarefully('results', maxBackups=100)
-	def fitnessFileName(mutGoverning, newIndivs=1):
-		return 'NI' + str(newIndivs) + '_MG' + str(mutGoverning) + '_fitness'
+
+	def fitnessFileName(paramsDict):
+		gid = 'NOGID'
+		if paramsDict['lineageInjectionPeriod'] == 30000:
+			if paramsDict['individual'] == 'ctrnnDiscreteWeightsFleetOfIdenticalsFixedFitness':
+				gid = '1'
+			elif paramsDict['individual'] == 'ctrnnDiscreteWeightsFleetOfIdenticalsEvolvableFitness':
+				gid = '2'
+		elif paramsDict['lineageInjectionPeriod'] == 50:
+			if paramsDict['mutatedLineagesFraction'] == 0.:
+				if paramsDict['evolver'] == 'ageFunction':
+					if paramsDict['initialPopulationType'] == 'random':
+						gid = '3'
+					elif paramsDict['initialPopulationType'] == 'sparse':
+						gid = '6'
+				elif paramsDict['evolver'] == 'ageFunctionSparsityBiased':
+					if paramsDict['initialPopulationType'] == 'random':
+						gid = '4'
+					elif paramsDict['initialPopulationType'] == 'sparse':
+						gid = '5'
+			elif paramsDict['mutatedLineagesFraction'] == 0.5:
+				gid = '7'
+		if gid == 'NOGID':
+			raise ValueError('Unclassified parameter dictionary {}'.format(paramsDict))
+		return 'gid{}'.format(gid)
+
 	def columnExtractor(gp):
-		outFile = fitnessFileName(gp['mutGoverning'])
+		print('Extracting fitness times series to {}...'.format(fitnessFileName(gp)))
+		outFile = fitnessFileName(gp)
 		subprocess.call('cut -d \' \' -f 2 bestIndividual*.log | tail -n +4 | tr \'\n\' \' \' >> ../results/' + outFile, shell=True)
 		subprocess.call('echo >> ../results/' + outFile, shell=True)
+
 #	experiment.executeAtEveryGridPointDir(columnExtractor)
+	return
+
 	os.chdir('results')
 	xlabel = 'Generations'
 	ylimit = None
