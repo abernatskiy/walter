@@ -56,7 +56,7 @@ nonRSGrid = (
               gr.Grid1d('initialPopulationType', ['random'])*
               gr.Grid1d('evolver', ['ageFunction'])*
               gr.Grid1d('lineageMutationType', ['individualClassDefault'])*
-              gr.Grid1d('individual', ['ctrnnDiscreteWeightsFleetOfIdenticalsFixedFitness', 'ctrnnDiscreteWeightsFleetOfIdenticalsEvolvableFitness'])
+              gr.Grid1d('individual', ['ctrnnDiscreteWeightsFleetOfIdenticalsEvolvableFitness'])
              )
             )
 
