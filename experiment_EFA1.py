@@ -13,7 +13,7 @@ import clusterClassifiers as cl
 import clusterExperiment as ce
 
 # Tunable hyperparameters
-numTrials = 50
+numTrials = 100
 
 # Optional definitions for pbsGridWalker that depend on run execution time
 cores = 12
@@ -40,7 +40,7 @@ evsDefaults = \
 'randomSeed': 42}
 
 ### Required pbsGridWalker definitions
-computationName = 'ageFunction'
+computationName = 'ageFunction1'
 
 nonRSGrid = (
              (
@@ -51,26 +51,16 @@ nonRSGrid = (
               gr.Grid1d('lineageMutationType', ['individualClassDefault'])*
               gr.Grid1d('individual', ['ctrnnDiscreteWeightsFleetOfIdenticalsFixedFitness', 'ctrnnDiscreteWeightsFleetOfIdenticalsEvolvableFitness'])
              ).concatenate(
-
-              gr.Grid1d('individual', ['ctrnnDiscreteWeightsFleetOfIdenticalsEvolvableFitness'])*
               gr.Grid1d('lineageInjectionPeriod', [50])*
-              (
-               gr.Grid1d('mutatedLineagesRatio', [1.0])*
-               gr.Grid1d('initialPopulationType', ['random'])*
-               gr.Grid1d('evolver', ['ageFunction'])*
-               gr.Grid1d('lineageMutationType', ['individualClassDefault', 'randomJump'])
-              ).concatenate(
-
-               gr.Grid1d('mutatedLineagesRatio', [0.])*
-               gr.Grid1d('lineageMutationType', ['individualClassDefault'])*
-               gr.Grid1d('initialPopulationType', ['sparse', 'random'])*
-               gr.Grid1d('evolver', ['ageFunction', 'ageFunctionSparsityBiased'])
-              )
-
+              gr.Grid1d('mutatedLineagesRatio', [0.])*
+              gr.Grid1d('initialPopulationType', ['random'])*
+              gr.Grid1d('evolver', ['ageFunction'])*
+              gr.Grid1d('lineageMutationType', ['individualClassDefault'])*
+              gr.Grid1d('individual', ['ctrnnDiscreteWeightsFleetOfIdenticalsFixedFitness', 'ctrnnDiscreteWeightsFleetOfIdenticalsEvolvableFitness'])
              )
             )
 
-parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials)
+parametricGrid = nonRSGrid*numTrials + gr.Grid1dFromFile('randomSeed', cr.randSeedFile, size=len(nonRSGrid)*numTrials, startAt=0)
 
 for par in parametricGrid.paramNames():
 	evsDefaults.pop(par)
@@ -143,10 +133,8 @@ def processResults(experiment):
 		dataDict = { fn: np.loadtxt(fn) for fn in filenames }
 
 		comp1 = { tsn: dataDict[fn] for tsn,fn in {'manual scaffolding': 'gid1', 'random scaffolding': 'gid2', 'evolvable scaffolding': 'gid3'}.items() }
-		comp2 = { tsn: dataDict[fn] for tsn,fn in {'no bias (RIP)': 'gid3', 'RIP+CC': 'gid4', 'SIP+CC': 'gid5', 'SIP only': 'gid6'}.items() }
-		comp3 = { tsn: dataDict[fn] for tsn,fn in {'no turning': 'gid3', 'smooth turning': 'gid7', 'abrupt turning': 'gid8'}.items() }
 
-		comparisons = { 'comp1': comp1, 'comp2': comp2, 'comp3': comp3 }
+		comparisons = { 'comp1': comp1 }
 
 		for e,d in comparisons.items():
 			tplt.plotAverageTimeSeries(d, 'Fitness', e + '-avg.png',
