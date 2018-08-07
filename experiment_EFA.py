@@ -132,7 +132,7 @@ def processResults(experiment):
 		yscale = 'lin'
 		xscale = 'lin'
 		margins = 0.5
-		xlimit = 3000
+		xlimit = 6000
 		alpha = 0.3
 		title = None
 #		figsize = (2.5,4)
